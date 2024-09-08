@@ -39,72 +39,61 @@ getch();<br>
 }</p>   
     <h2>project 3</h2>
     <p>
-    #include<stdio.h> 
-
-#include<conio.h> 
-
-main() 
-
-{ 
-
-int l, s, r; 
-printf("roll number=2128\n");
-
-printf("Enter large value :"); 
-
-scanf("%d", &l); 
-
-printf("Enter small value :"); 
-
-scanf("%d", &s); 
-
-while(l%s!=0) 
-
-{ 
-
-r = l%s; 
-
-l = s; 
-
-s = r; 
-
-} 
-
-printf("GCD=%d", s); 
-
-getch(); 
-
+#include<stdio.h> <br>
+#include<conio.h> <br>
+main() <br>
+{ <br>
+int l, s, r; <br>
+printf("roll number=2128\n");<br>
+printf("Enter large value :"); <br>
+scanf("%d", &l); <br>
+printf("Enter small value :"); <br>
+scanf("%d", &s); <br>
+while(l%s!=0) <br>
+{ <br>
+r = l%s; <br>
+l = s; <br>
+s = r; <br>
+} <br>
+printf("GCD=%d", s); <br>
+getch(); <br>
 }</p>
     <h2>project 4</h2>
     <p>
-        #include<stdio.h> 
-
-#include<conio.h> 
-
-main() 
-
-{ 
-
- int n, i; 
-
- long f=1; 
- printf("roll number=2128\n");
-
- printf("Enter a number: "); 
-
- scanf("%d", &n); 
-
- for(i=1; i<=n; i++) { 
-
- f=f*i; 
-
- } 
-
- printf("Factorial is %ld", f);
-
- getch(); 
-
- }
+#include<stdio.h> <br>
+#include<conio.h> <br>
+main() <br>
+{ <br>
+ int n, i; <br>
+ long f=1; <br>
+ printf("roll number=2128\n");<br>
+ printf("Enter a number: "); <br>
+ scanf("%d", &n); <br>
+ for(i=1; i<=n; i++) { <br>
+ f=f*i; <br>
+ } <br>
+ printf("Factorial is %ld", f);<br>
+ getch();<br>
+ }<br>
     </p>
+     <h2>project 5</h2>
+     <p>
+#include<stdio.h> <br>
+#include<conio.h> <br>
+main() <br>
+{ <br>
+ int n, i, a[100]; <br>
+ printf("roll number= 2128\n");<br>
+ printf("How many fibonacci number? "); <br>
+ scanf("%d",&n); <br>
+ printf("Enter 1st & 2nd number : ");<br>
+ scanf("%d %d", &a[1], &a[2]); <br>
+ for(i=3; i<=n; i++) 
+     { <br>
+ a[i]=a[i-1]+a[i-2]; <br>
+ printf("\n Fibonacci number %d", a[i]);<br> 
+ } <br>
+}
+     </p>
 </body>
 </html>
