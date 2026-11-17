@@ -1,8 +1,156 @@
-<html>
-  <body>
-    <p>see the boat</p>
-    <a href="boat1.html"> the beach</a>
-    <br><p>now the harbour</p>
-    <a href="harbour.html"> harbour</a>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choose a scene</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --card:#ffffff; --ink:#000000;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#000000; --card:#000000; --ink:#ffffff; color-scheme:dark}
+}
+*{box-sizing:border-box;margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+main{max-width:1120px; margin:0 auto; padding:clamp(2rem,7vw,5.5rem) clamp(1.25rem,4vw,2.5rem) 5rem}
+h1{
+  font-size:clamp(3rem,10vw,7rem); font-weight:600; line-height:.95; letter-spacing:-.04em;
+  margin-bottom:clamp(2.5rem,6vw,4.5rem);
+}
+
+.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:2.25rem 2rem}
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:580px){.grid{grid-template-columns:1fr}}
+
+.card{
+  position:relative; overflow:hidden; display:block;
+  color:inherit; text-decoration:none; background:var(--card);
+  border:3px solid var(--ink); border-radius:22px;
+  box-shadow:7px 7px 0 var(--ink);
+  transition:transform .14s ease-out, box-shadow .14s ease-out;
+  -webkit-tap-highlight-color:transparent;
+}
+.card:hover{transform:translate(-3px,-3px); box-shadow:10px 10px 0 var(--ink)}
+.card:active,.card.pressed{transform:translate(7px,7px); box-shadow:0 0 0 var(--ink)}
+.card:focus-visible{outline:4px solid var(--ink); outline-offset:5px}
+
+/* preview area: shows your image, or a coloured placeholder until you add one */
+.media{position:relative; aspect-ratio:4/3; overflow:hidden; background:color-mix(in srgb, var(--ink) 9%, var(--card)); border-bottom:3px solid var(--ink)}
+.media::before{
+  content:""; position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--ink) 9%, transparent) 0 20%, transparent 21%),
+    radial-gradient(circle at 12% 95%, color-mix(in srgb, var(--ink) 14%, transparent) 0 30%, transparent 31%);
+}
+.media .initial{
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-size:clamp(5rem,12vw,7.5rem); font-weight:600; letter-spacing:-.04em; color:var(--ink);
+}
+.media img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+  transition:transform .4s ease-out;
+}
+.card:hover .media img{transform:scale(1.06)}
+
+.body{padding:1.1rem 1.3rem 1.25rem; transition:background .15s}
+.card.pressed .body{background:var(--ink); color:var(--card)}
+.name{font-size:clamp(1.35rem,2.4vw,1.65rem); font-weight:600; letter-spacing:-.02em; line-height:1.15}
+
+.rip{
+  position:absolute; border-radius:50%; background:var(--ink); opacity:.22;
+  transform:scale(0); pointer-events:none; animation:rip .55s ease-out forwards; z-index:3;
+}
+@keyframes rip{to{transform:scale(1); opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+  .card,.media img,.body{transition:none} .rip{display:none}
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>Choose a scene</h1>
+  <nav class="grid" id="grid" aria-label="Scenes"></nav>
+</main>
+
+<script>
+/* ================= EDIT HERE =================
+   title: the name shown on the card
+   url:   the page the card opens
+   image: preview picture, e.g. "images/crystal.jpg" (4:3 works best, ~1200x900).
+          Leave "" to show the grey placeholder.                                */
+const OPEN_IN_NEW_TAB = false;
+const SCENES = [
+  { title:"Crystal cavern",   url:"#", image:"" },
+  { title:"Wireframe valley", url:"#", image:"" },
+  { title:"Orbital station",  url:"#", image:"" },
+  { title:"Star field",       url:"#", image:"" },
+  { title:"Helix tower",      url:"#", image:"" },
+  { title:"Knot garden",      url:"#", image:"" }
+];
+/* ============================================= */
+
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const grid = document.getElementById("grid");
+
+SCENES.forEach(s => {
+  const a = document.createElement("a");
+  a.className = "card";
+  a.href = s.url;
+  if (OPEN_IN_NEW_TAB) { a.target = "_blank"; a.rel = "noopener"; }
+
+  const media = document.createElement("div");
+  media.className = "media";
+  const initial = document.createElement("span");
+  initial.className = "initial";
+  initial.textContent = s.title.charAt(0);
+  media.appendChild(initial);
+  if (s.image) {
+    const img = document.createElement("img");
+    img.src = s.image; img.alt = ""; img.loading = "lazy";
+    img.onerror = () => img.remove();            // falls back to the placeholder
+    media.appendChild(img);
+  }
+
+  const body = document.createElement("div");
+  body.className = "body";
+  const name = document.createElement("span");
+  name.className = "name";
+  name.textContent = s.title;
+  body.appendChild(name);
+
+  a.append(media, body);
+
+  a.addEventListener("click", e => {
+    const r = a.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) * 2.4;
+    const x = e.detail ? e.clientX - r.left : r.width / 2;
+    const y = e.detail ? e.clientY - r.top : r.height / 2;
+    const rip = document.createElement("i");
+    rip.className = "rip";
+    rip.style.cssText = `width:${size}px;height:${size}px;left:${x - size/2}px;top:${y - size/2}px`;
+    a.appendChild(rip);
+    a.classList.add("pressed");
+    setTimeout(() => { rip.remove(); a.classList.remove("pressed"); }, 550);
+
+    if (s.url === "#") { e.preventDefault(); return; }          // placeholder link
+    const modified = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0;
+    if (modified || OPEN_IN_NEW_TAB) return;                    // let the browser handle it
+    e.preventDefault();
+    setTimeout(() => { location.href = s.url; }, still ? 0 : 280); // let the press animation play
+  });
+
+  grid.appendChild(a);
+});
+</script>
+</body>
 </html>
