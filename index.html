@@ -20,13 +20,8 @@
         "Segoe UI", sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
@@ -38,28 +33,12 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    [hidden] { display: none !important; }
 
-    button,
-    input {
-      font: inherit;
-    }
-
-    button {
-      color: inherit;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    .container {
-      width: min(1160px, calc(100% - 48px));
-      margin-inline: auto;
-    }
+    .container { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
 
     .skip-link {
       position: fixed;
@@ -72,30 +51,13 @@
       border-radius: 8px;
       transform: translateY(-150%);
     }
-
-    .skip-link:focus {
-      transform: translateY(0);
-    }
+    .skip-link:focus { transform: translateY(0); }
 
     /* Header */
 
-    .site-header {
-      height: 78px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .header-inner {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 11px;
-    }
+    .site-header { height: 78px; border-bottom: 1px solid var(--line); }
+    .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; }
 
     .brand-mark {
       width: 32px;
@@ -108,52 +70,16 @@
       background: var(--ink);
       border-radius: 10px;
     }
+    .brand-mark i { width: 5px; height: 5px; background: var(--accent); border-radius: 1px; }
+    .brand-mark i:nth-child(2), .brand-mark i:nth-child(3) { opacity: 0.65; }
 
-    .brand-mark i {
-      width: 5px;
-      height: 5px;
-      background: var(--accent);
-      border-radius: 1px;
-    }
+    .brand-copy { display: grid; gap: 2px; }
+    .brand-copy strong { font-size: 13px; font-weight: 750; letter-spacing: 0.14em; }
+    .brand-copy span { color: var(--muted); font-family: var(--mono); font-size: 8px; letter-spacing: 0.1em; }
 
-    .brand-mark i:nth-child(2),
-    .brand-mark i:nth-child(3) {
-      opacity: 0.65;
-    }
-
-    .brand-copy {
-      display: grid;
-      gap: 2px;
-    }
-
-    .brand-copy strong {
-      font-size: 13px;
-      font-weight: 750;
-      letter-spacing: 0.14em;
-    }
-
-    .brand-copy span {
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 8px;
-      letter-spacing: 0.1em;
-    }
-
-    .header-nav {
-      display: flex;
-      align-items: center;
-      gap: 30px;
-    }
-
-    .nav-link {
-      color: #606963;
-      font-size: 13px;
-      transition: color 180ms ease;
-    }
-
-    .nav-link:hover {
-      color: var(--ink);
-    }
+    .header-nav { display: flex; align-items: center; gap: 30px; }
+    .nav-link { color: #606963; font-size: 13px; transition: color 180ms ease; }
+    .nav-link:hover { color: var(--ink); }
 
     .nav-cta {
       min-height: 38px;
@@ -167,16 +93,8 @@
       font-size: 12px;
       transition: background 180ms ease, transform 180ms ease;
     }
-
-    .nav-cta:hover {
-      background: #37423b;
-      transform: translateY(-1px);
-    }
-
-    .nav-cta-arrow {
-      color: var(--accent);
-      font-size: 15px;
-    }
+    .nav-cta:hover { background: #37423b; transform: translateY(-1px); }
+    .nav-cta-arrow { color: var(--accent); font-size: 15px; }
 
     /* Hero */
 
@@ -219,30 +137,15 @@
       line-height: 0.98;
     }
 
-    .hero h1 em,
-    .section-heading h2 em,
-    .about-content h2 em {
+    .hero h1 em, .section-heading h2 em, .about-content h2 em {
       color: #718071;
       font-family: Georgia, "Times New Roman", serif;
       font-weight: 400;
       letter-spacing: -0.075em;
     }
 
-    .hero-description {
-      max-width: 420px;
-      margin: 23px 0 0;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.75;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 19px;
-      margin-top: 30px;
-    }
+    .hero-description { max-width: 420px; margin: 23px 0 0; color: var(--muted); font-size: 15px; line-height: 1.75; }
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 19px; margin-top: 30px; }
 
     .button-primary {
       min-height: 49px;
@@ -257,11 +160,7 @@
       font-weight: 600;
       transition: transform 180ms ease, background 180ms ease;
     }
-
-    .button-primary:hover {
-      background: #37423b;
-      transform: translateY(-2px);
-    }
+    .button-primary:hover { background: #37423b; transform: translateY(-2px); }
 
     .button-icon {
       width: 37px;
@@ -274,19 +173,8 @@
       font-size: 17px;
     }
 
-    .hero-note {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      color: #747c76;
-      font-size: 11px;
-    }
-
-    .note-line {
-      width: 20px;
-      height: 1px;
-      background: #9aa19b;
-    }
+    .hero-note { display: inline-flex; align-items: center; gap: 9px; color: #747c76; font-size: 11px; }
+    .note-line { width: 20px; height: 1px; background: #9aa19b; }
 
     .hero-footnote {
       display: flex;
@@ -341,8 +229,7 @@
       mask-image: linear-gradient(to bottom, #000, transparent 85%);
     }
 
-    .visual-top,
-    .visual-footer {
+    .visual-top, .visual-footer {
       position: absolute;
       z-index: 5;
       right: 23px;
@@ -355,16 +242,8 @@
       letter-spacing: 0.09em;
     }
 
-    .visual-top {
-      top: 21px;
-      color: rgba(238, 240, 233, 0.66);
-    }
-
-    .visual-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .visual-top { top: 21px; color: rgba(238, 240, 233, 0.66); }
+    .visual-label { display: inline-flex; align-items: center; gap: 8px; }
 
     .visual-live-dot {
       width: 6px;
@@ -374,12 +253,7 @@
       box-shadow: 0 0 12px rgba(199, 243, 107, 0.8);
     }
 
-    .visual-composition {
-      position: absolute;
-      inset: 55px 10px 57px;
-      display: grid;
-      place-items: center;
-    }
+    .visual-composition { position: absolute; inset: 55px 10px 57px; display: grid; place-items: center; }
 
     .visual-sphere {
       position: absolute;
@@ -438,40 +312,19 @@
       color: rgba(238, 240, 233, 0.76);
       border-top: 1px solid rgba(238, 240, 233, 0.18);
     }
-
-    .visual-footer span:last-child {
-      color: rgba(238, 240, 233, 0.42);
-    }
+    .visual-footer span:last-child { color: rgba(238, 240, 233, 0.42); }
 
     @keyframes float {
-      0%, 100% {
-        translate: 0 0;
-      }
-      50% {
-        translate: 0 -8px;
-      }
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -8px; }
     }
 
     /* Scene collection */
 
-    .gallery {
-      padding-top: 28px;
-      padding-bottom: 92px;
-      scroll-margin-top: 24px;
-    }
+    .gallery { padding-top: 28px; padding-bottom: 92px; scroll-margin-top: 24px; }
 
-    .section-heading {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 32px;
-      margin-bottom: 34px;
-    }
-
-    .section-heading .eyebrow {
-      margin-bottom: 14px;
-    }
-
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 34px; }
+    .section-heading .eyebrow { margin-bottom: 14px; }
     .section-heading h2 {
       margin: 0;
       font-size: clamp(2.2rem, 4vw, 3.45rem);
@@ -479,14 +332,7 @@
       letter-spacing: -0.065em;
       line-height: 1.05;
     }
-
-    .section-intro {
-      max-width: 320px;
-      margin: 0 0 3px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-    }
+    .section-intro { max-width: 320px; margin: 0 0 3px; color: var(--muted); font-size: 13px; line-height: 1.7; }
 
     .gallery-toolbar {
       display: flex;
@@ -497,11 +343,7 @@
       border-bottom: 1px solid var(--line);
     }
 
-    .filter-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    .filter-list { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .filter-button {
       min-height: 35px;
@@ -514,17 +356,8 @@
       font-size: 11px;
       transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
     }
-
-    .filter-button:hover {
-      color: var(--ink);
-      border-color: var(--line);
-    }
-
-    .filter-button[aria-pressed="true"] {
-      color: #fff;
-      background: var(--ink);
-      border-color: var(--ink);
-    }
+    .filter-button:hover { color: var(--ink); border-color: var(--line); }
+    .filter-button[aria-pressed="true"] { color: #fff; background: var(--ink); border-color: var(--ink); }
 
     .search-box {
       width: 230px;
@@ -540,16 +373,8 @@
       border-radius: 99px;
       transition: border-color 160ms ease, box-shadow 160ms ease;
     }
-
-    .search-box:focus-within {
-      border-color: #929b91;
-      box-shadow: 0 0 0 3px rgba(125, 142, 119, 0.12);
-    }
-
-    .search-box svg {
-      flex: 0 0 auto;
-    }
-
+    .search-box:focus-within { border-color: #929b91; box-shadow: 0 0 0 3px rgba(125, 142, 119, 0.12); }
+    .search-box svg { flex: 0 0 auto; }
     .search-box input {
       width: 100%;
       min-width: 0;
@@ -560,10 +385,7 @@
       outline: 0;
       font-size: 11px;
     }
-
-    .search-box input::placeholder {
-      color: #929992;
-    }
+    .search-box input::placeholder { color: #929992; }
 
     .gallery-meta {
       display: flex;
@@ -577,16 +399,9 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+    .gallery-meta #scene-count { color: #515b54; }
 
-    .gallery-meta #scene-count {
-      color: #515b54;
-    }
-
-    .scene-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
+    .scene-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 
     .scene-card {
       min-width: 0;
@@ -598,10 +413,7 @@
       border: 1px solid rgba(29, 37, 33, 0.1);
       border-radius: 21px;
       box-shadow: 0 3px 14px rgba(31, 40, 34, 0.025);
-      transition:
-        transform 220ms ease,
-        border-color 220ms ease,
-        box-shadow 220ms ease;
+      transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
     }
 
     .scene-card:hover {
@@ -621,6 +433,8 @@
       outline-offset: 4px;
     }
 
+    /* Card image frame. The neutral gradient shows while the image loads,
+       or if an image file is missing. */
     .scene-art {
       position: relative;
       display: block;
@@ -628,54 +442,45 @@
       aspect-ratio: 1.48 / 1;
       isolation: isolate;
       border-radius: 14px;
+      background: linear-gradient(145deg, #e3e6dc, #c5cbbf);
     }
 
-    .scene-art::before,
-    .scene-art::after {
+    /* object-fit: cover fills the frame and crops the edges rather than
+       stretching. Use "contain" if you never want cropping. */
+    .scene-art img {
       position: absolute;
-      z-index: 0;
-      content: "";
-      pointer-events: none;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 500ms cubic-bezier(.2, .7, .2, 1);
     }
 
-    .scene-art .shape {
-      position: absolute;
-      display: block;
+    @media (hover: hover) {
+      .scene-card:hover .scene-art img { transform: scale(1.04); }
     }
 
-    .art-label,
-    .art-code {
+    /* Small labels on top of the image. The light chip keeps them readable
+       on any photo. */
+    .art-label, .art-code {
       position: absolute;
-      z-index: 5;
-      color: rgba(36, 44, 39, 0.65);
+      z-index: 2;
+      padding: 4px 7px;
+      color: #2c352f;
+      background: rgba(255, 255, 252, 0.72);
+      border-radius: 99px;
       font-family: var(--mono);
       font-size: 8px;
       letter-spacing: 0.09em;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
+    .art-label { top: 11px; left: 11px; }
+    .art-code { right: 11px; bottom: 11px; }
 
-    .art-label {
-      top: 13px;
-      left: 14px;
-    }
-
-    .art-code {
-      right: 14px;
-      bottom: 12px;
-    }
-
-    .card-info {
-      display: flex;
-      flex: 1;
-      flex-direction: column;
-      padding: 13px 8px 8px;
-    }
-
-    .card-topline {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
+    .card-info { display: flex; flex: 1; flex-direction: column; padding: 13px 8px 8px; }
+    .card-topline { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 
     .category-tag {
       padding: 6px 8px;
@@ -699,27 +504,10 @@
       font-size: 14px;
       transition: color 180ms ease, background 180ms ease, transform 180ms ease;
     }
+    .scene-card:hover .card-arrow { color: var(--ink); background: var(--accent); transform: rotate(45deg); }
 
-    .scene-card:hover .card-arrow {
-      color: var(--ink);
-      background: var(--accent);
-      transform: rotate(45deg);
-    }
-
-    .card-info h3 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 560;
-      letter-spacing: -0.045em;
-    }
-
-    .card-info p {
-      min-height: 40px;
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.65;
-    }
+    .card-info h3 { margin: 0; font-size: 20px; font-weight: 560; letter-spacing: -0.045em; }
+    .card-info p { min-height: 40px; margin: 8px 0 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
 
     .card-bottom {
       display: flex;
@@ -731,31 +519,11 @@
       font-size: 8px;
       letter-spacing: 0.1em;
     }
+    .card-bottom-line { height: 1px; flex: 1; background: var(--line); }
 
-    .card-bottom-line {
-      height: 1px;
-      flex: 1;
-      background: var(--line);
-    }
-
-    .empty-state {
-      padding: 55px 20px;
-      text-align: center;
-      border: 1px dashed var(--line);
-      border-radius: 18px;
-    }
-
-    .empty-state h3 {
-      margin: 0;
-      font-size: 19px;
-      letter-spacing: -0.04em;
-    }
-
-    .empty-state p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
+    .empty-state { padding: 55px 20px; text-align: center; border: 1px dashed var(--line); border-radius: 18px; }
+    .empty-state h3 { margin: 0; font-size: 19px; letter-spacing: -0.04em; }
+    .empty-state p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
 
     .reset-button {
       margin-top: 18px;
@@ -768,300 +536,9 @@
       font-size: 11px;
     }
 
-    /* CSS scene artwork */
-
-    .art-solstice {
-      background:
-        radial-gradient(ellipse at 50% 105%, rgba(105, 67, 80, 0.3), transparent 44%),
-        linear-gradient(145deg, #c1c9d6 0%, #edcec0 58%, #d9917d 100%);
-    }
-
-    .art-solstice::before {
-      top: 13%;
-      left: 50%;
-      width: 210px;
-      height: 210px;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      border-radius: 50%;
-      box-shadow: 0 0 0 15px rgba(255, 255, 255, 0.06);
-      transform: translateX(-50%);
-    }
-
-    .art-solstice .shape-main {
-      z-index: 2;
-      top: 45%;
-      left: 50%;
-      width: 116px;
-      height: 116px;
-      background: radial-gradient(circle at 32% 25%, #fff2d9 0 4%, #f2b489 23%, #b66170 59%, #594664 90%);
-      border: 1px solid rgba(255, 255, 255, 0.34);
-      border-radius: 50%;
-      box-shadow: 0 19px 28px rgba(88, 53, 68, 0.22), inset -13px -14px 21px rgba(70, 44, 70, 0.25);
-      transform: translate(-50%, -50%);
-    }
-
-    .art-solstice .shape-secondary {
-      z-index: 3;
-      top: 46%;
-      left: 50%;
-      width: 205px;
-      height: 69px;
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      border-radius: 50%;
-      transform: translate(-50%, -50%) rotate(-23deg) rotateX(61deg);
-    }
-
-    .art-solstice .shape-tertiary {
-      z-index: 1;
-      bottom: 13%;
-      left: 15%;
-      width: 70%;
-      height: 19px;
-      background: rgba(112, 66, 75, 0.18);
-      border-radius: 50%;
-      filter: blur(5px);
-    }
-
-    .art-soft-orbit {
-      background:
-        radial-gradient(ellipse at 50% 50%, rgba(238, 219, 198, 0.88), transparent 42%),
-        linear-gradient(145deg, #d8ded1, #abbeb4);
-    }
-
-    .art-soft-orbit::before {
-      inset: 0;
-      background-image: radial-gradient(rgba(43, 60, 52, 0.12) 0.8px, transparent 0.8px);
-      background-size: 14px 14px;
-      opacity: 0.38;
-    }
-
-    .art-soft-orbit .shape-main {
-      z-index: 2;
-      top: 49%;
-      left: 50%;
-      width: 94px;
-      height: 94px;
-      background: radial-gradient(circle at 33% 27%, #fff0d6, #db9b83 38%, #736987 82%);
-      border-radius: 50%;
-      box-shadow: 0 18px 25px rgba(53, 62, 58, 0.2), inset -10px -12px 18px rgba(54, 55, 79, 0.22);
-      transform: translate(-50%, -50%);
-    }
-
-    .art-soft-orbit .shape-secondary {
-      z-index: 3;
-      top: 49%;
-      left: 50%;
-      width: 220px;
-      height: 76px;
-      border: 1px solid rgba(255, 255, 255, 0.88);
-      border-radius: 50%;
-      box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.11);
-      transform: translate(-50%, -50%) rotate(-22deg) rotateX(62deg);
-    }
-
-    .art-soft-orbit .shape-tertiary {
-      z-index: 4;
-      top: 29%;
-      right: 23%;
-      width: 30px;
-      height: 30px;
-      background: radial-gradient(circle at 32% 27%, #fff7de, #d28d7c 64%, #74627a);
-      border-radius: 50%;
-      box-shadow: 0 7px 12px rgba(53, 62, 58, 0.18);
-    }
-
-    .art-monolith {
-      background: linear-gradient(160deg, #ddd6d0 0%, #e9c1a8 58%, #ba897d 100%);
-    }
-
-    .art-monolith::before {
-      right: 0;
-      bottom: 0;
-      left: 0;
-      height: 38%;
-      background: linear-gradient(180deg, rgba(123, 83, 81, 0.03), rgba(77, 61, 66, 0.27));
-      clip-path: polygon(0 38%, 34% 0, 100% 24%, 100% 100%, 0 100%);
-    }
-
-    .art-monolith .shape-main {
-      z-index: 2;
-      bottom: 13%;
-      left: 55%;
-      width: 94px;
-      height: 143px;
-      background: linear-gradient(90deg, #555b57 0%, #929388 62%, #c7b29e 100%);
-      box-shadow: 15px 11px 20px rgba(58, 54, 56, 0.17);
-      clip-path: polygon(15% 0, 100% 8%, 100% 100%, 0 100%, 0 16%);
-      transform: translateX(-50%);
-    }
-
-    .art-monolith .shape-secondary {
-      z-index: 1;
-      bottom: 13%;
-      left: 24%;
-      width: 78px;
-      height: 105px;
-      background: linear-gradient(90deg, rgba(99, 99, 89, 0.76), rgba(214, 186, 157, 0.8));
-      border-radius: 48px 48px 0 0;
-    }
-
-    .art-monolith .shape-tertiary {
-      z-index: 3;
-      bottom: -33px;
-      left: -10%;
-      width: 120%;
-      height: 67px;
-      background: linear-gradient(180deg, #ab8178, #745e63);
-      border-radius: 50%;
-      transform: rotate(-4deg);
-    }
-
-    .art-quiet-atrium {
-      background:
-        radial-gradient(ellipse at 50% 15%, #fff9e9, transparent 49%),
-        linear-gradient(140deg, #d4d9cb, #a9b2a4 70%, #818d7e);
-    }
-
-    .art-quiet-atrium .shape-main {
-      z-index: 1;
-      bottom: 8%;
-      left: 50%;
-      width: 150px;
-      height: 166px;
-      background: linear-gradient(90deg, #9b9c89, #e7dfca 55%, #b4b5a2);
-      border-radius: 80px 80px 2px 2px;
-      box-shadow: inset 13px 0 20px rgba(65, 73, 63, 0.11), 12px 8px 20px rgba(49, 57, 50, 0.11);
-      transform: translateX(-50%);
-    }
-
-    .art-quiet-atrium .shape-secondary {
-      z-index: 2;
-      bottom: 8%;
-      left: 50%;
-      width: 78px;
-      height: 119px;
-      background: linear-gradient(90deg, #667568, #404e47);
-      border-radius: 46px 46px 0 0;
-      box-shadow: inset 10px 0 15px rgba(20, 31, 27, 0.27);
-      transform: translateX(-50%);
-    }
-
-    .art-quiet-atrium .shape-tertiary {
-      z-index: 3;
-      bottom: -36px;
-      left: -12%;
-      width: 124%;
-      height: 78px;
-      background: linear-gradient(180deg, #c2bba6, #858776);
-      border-radius: 50%;
-      transform: rotate(2deg);
-    }
-
-    .art-after-tide {
-      background: linear-gradient(180deg, #b8d0d0 0%, #d9d4c1 57%, #d6b798 100%);
-    }
-
-    .art-after-tide::before {
-      top: 14%;
-      right: 23%;
-      width: 66px;
-      height: 66px;
-      background: radial-gradient(circle at 35% 30%, #fff4d5, #e8bd7e 67%, #dfa674);
-      border-radius: 50%;
-      box-shadow: 0 0 35px rgba(246, 211, 161, 0.34);
-    }
-
-    .art-after-tide .shape-main {
-      z-index: 1;
-      bottom: -38px;
-      left: -15%;
-      width: 132%;
-      height: 132px;
-      background: linear-gradient(180deg, #b7897e, #8e7778);
-      border-radius: 50%;
-      transform: rotate(-5deg);
-    }
-
-    .art-after-tide .shape-secondary {
-      z-index: 2;
-      bottom: -66px;
-      left: -12%;
-      width: 128%;
-      height: 135px;
-      background: linear-gradient(180deg, #d6ad8d, #aa806f);
-      border-radius: 50%;
-      transform: rotate(5deg);
-    }
-
-    .art-after-tide .shape-tertiary {
-      z-index: 3;
-      bottom: -80px;
-      left: 34%;
-      width: 112%;
-      height: 120px;
-      background: linear-gradient(180deg, #e0bc99, #b88f77);
-      border-radius: 50%;
-      transform: rotate(-12deg);
-    }
-
-    .art-object-04 {
-      background:
-        radial-gradient(ellipse at 50% 50%, rgba(101, 121, 129, 0.48), transparent 52%),
-        linear-gradient(145deg, #343d42, #20282b);
-    }
-
-    .art-object-04 .art-label,
-    .art-object-04 .art-code {
-      color: rgba(238, 240, 233, 0.62);
-    }
-
-    .art-object-04 .shape-main {
-      z-index: 2;
-      top: 47%;
-      left: 50%;
-      width: 105px;
-      height: 105px;
-      background: radial-gradient(circle at 32% 25%, #fff 0 4%, #cbd4cf 18%, #71858b 57%, #3b4b58 86%);
-      border: 1px solid rgba(255, 255, 255, 0.52);
-      border-radius: 50%;
-      box-shadow: inset -15px -15px 22px rgba(20, 31, 36, 0.46), 0 21px 30px rgba(0, 0, 0, 0.32);
-      transform: translate(-50%, -50%);
-    }
-
-    .art-object-04 .shape-secondary {
-      z-index: 3;
-      top: 50%;
-      left: 50%;
-      width: 200px;
-      height: 76px;
-      border: 10px solid rgba(218, 231, 225, 0.8);
-      border-radius: 50%;
-      box-shadow: inset 0 0 9px rgba(255, 255, 255, 0.56), 0 0 13px rgba(224, 244, 234, 0.18);
-      transform: translate(-50%, -50%) rotate(-24deg) rotateX(61deg);
-    }
-
-    .art-object-04 .shape-tertiary {
-      z-index: 1;
-      bottom: 12%;
-      left: 50%;
-      width: 132px;
-      height: 27px;
-      background: linear-gradient(180deg, #879794, #39464a);
-      border: 1px solid rgba(230, 239, 233, 0.4);
-      border-radius: 50%;
-      box-shadow: 0 9px 18px rgba(0, 0, 0, 0.3);
-      transform: translateX(-50%);
-    }
-
     /* About and footer */
 
-    .about-section {
-      padding-top: 26px;
-      padding-bottom: 83px;
-      border-top: 1px solid var(--line);
-      scroll-margin-top: 24px;
-    }
-
+    .about-section { padding-top: 26px; padding-bottom: 83px; border-top: 1px solid var(--line); scroll-margin-top: 24px; }
     .about-label {
       display: flex;
       justify-content: space-between;
@@ -1071,14 +548,7 @@
       letter-spacing: 0.1em;
     }
 
-    .about-content {
-      display: grid;
-      grid-template-columns: 1.1fr 0.8fr auto;
-      align-items: end;
-      gap: 35px;
-      margin-top: 27px;
-    }
-
+    .about-content { display: grid; grid-template-columns: 1.1fr 0.8fr auto; align-items: end; gap: 35px; margin-top: 27px; }
     .about-content h2 {
       margin: 0;
       font-size: clamp(2.3rem, 4.4vw, 3.7rem);
@@ -1086,14 +556,7 @@
       letter-spacing: -0.07em;
       line-height: 1.02;
     }
-
-    .about-content p {
-      max-width: 365px;
-      margin: 0 0 3px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.8;
-    }
+    .about-content p { max-width: 365px; margin: 0 0 3px; color: var(--muted); font-size: 12px; line-height: 1.8; }
 
     .about-link {
       display: inline-flex;
@@ -1105,279 +568,77 @@
       font-size: 11px;
       transition: gap 180ms ease;
     }
+    .about-link:hover { gap: 17px; }
+    .about-link span { color: #73814f; font-size: 15px; }
 
-    .about-link:hover {
-      gap: 17px;
-    }
-
-    .about-link span {
-      color: #73814f;
-      font-size: 15px;
-    }
-
-    .site-footer {
-      border-top: 1px solid var(--line);
-    }
-
-    .footer-inner {
-      min-height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-    }
-
-    .footer-note,
-    .footer-top {
-      color: #79817b;
-      font-size: 10px;
-    }
-
-    .footer-top {
-      transition: color 160ms ease;
-    }
-
-    .footer-top:hover {
-      color: var(--ink);
-    }
+    .site-footer { border-top: 1px solid var(--line); }
+    .footer-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .footer-note, .footer-top { color: #79817b; font-size: 10px; }
+    .footer-top { transition: color 160ms ease; }
+    .footer-top:hover { color: var(--ink); }
 
     /* Responsive layout */
 
     @media (max-width: 960px) {
-      .hero {
-        grid-template-columns: minmax(0, 1fr) minmax(310px, 0.9fr);
-        gap: 38px;
-      }
-
-      .hero h1 {
-        font-size: clamp(3.35rem, 6.5vw, 5rem);
-      }
-
-      .scene-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .about-content {
-        grid-template-columns: 1fr 0.9fr;
-      }
-
-      .about-link {
-        grid-column: 2;
-        justify-self: start;
-      }
+      .hero { grid-template-columns: minmax(0, 1fr) minmax(310px, 0.9fr); gap: 38px; }
+      .hero h1 { font-size: clamp(3.35rem, 6.5vw, 5rem); }
+      .scene-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .about-content { grid-template-columns: 1fr 0.9fr; }
+      .about-link { grid-column: 2; justify-self: start; }
     }
 
     @media (max-width: 760px) {
-      .hero {
-        grid-template-columns: 1fr;
-        gap: 39px;
-        padding-top: 58px;
-        padding-bottom: 68px;
-      }
-
-      .hero-copy {
-        max-width: 650px;
-      }
-
-      .hero h1 {
-        font-size: clamp(3.8rem, 10vw, 5.4rem);
-      }
-
-      .hero-visual {
-        height: 390px;
-      }
-
-      .section-heading {
-        align-items: start;
-        flex-direction: column;
-        gap: 14px;
-      }
-
-      .section-intro {
-        max-width: 460px;
-      }
-
-      .about-content {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .about-content h2 {
-        grid-column: 1 / -1;
-      }
-
-      .about-link {
-        grid-column: auto;
-      }
+      .hero { grid-template-columns: 1fr; gap: 39px; padding-top: 58px; padding-bottom: 68px; }
+      .hero-copy { max-width: 650px; }
+      .hero h1 { font-size: clamp(3.8rem, 10vw, 5.4rem); }
+      .hero-visual { height: 390px; }
+      .section-heading { align-items: start; flex-direction: column; gap: 14px; }
+      .section-intro { max-width: 460px; }
+      .about-content { grid-template-columns: 1fr 1fr; }
+      .about-content h2 { grid-column: 1 / -1; }
+      .about-link { grid-column: auto; }
     }
 
     @media (max-width: 560px) {
-      .container {
-        width: calc(100% - 32px);
-      }
-
-      .site-header {
-        height: 69px;
-      }
-
-      .header-nav {
-        gap: 14px;
-      }
-
-      .nav-link.nav-about {
-        display: none;
-      }
-
-      .nav-cta {
-        width: 37px;
-        min-height: 37px;
-        justify-content: center;
-        padding: 0;
-      }
-
-      .nav-cta-label {
-        display: none;
-      }
-
-      .hero {
-        gap: 32px;
-        padding-top: 47px;
-        padding-bottom: 57px;
-      }
-
-      .hero .eyebrow {
-        margin-bottom: 19px;
-        font-size: 9px;
-      }
-
-      .hero h1 {
-        font-size: clamp(3.25rem, 13.7vw, 4.5rem);
-      }
-
-      .hero-description {
-        margin-top: 18px;
-        font-size: 14px;
-      }
-
-      .hero-actions {
-        gap: 14px;
-        margin-top: 24px;
-      }
-
-      .hero-note {
-        font-size: 10px;
-      }
-
-      .hero-footnote {
-        margin-top: 34px;
-        font-size: 8px;
-      }
-
-      .hero-visual {
-        height: 330px;
-        border-radius: 20px;
-      }
-
-      .visual-sphere {
-        width: 137px;
-        height: 137px;
-      }
-
-      .visual-orbit {
-        width: 248px;
-        height: 88px;
-      }
-
-      .visual-orbit--two {
-        width: 225px;
-        height: 78px;
-      }
-
-      .visual-platform {
-        width: 215px;
-      }
-
-      .gallery {
-        padding-top: 10px;
-        padding-bottom: 65px;
-      }
-
-      .section-heading {
-        margin-bottom: 25px;
-      }
-
-      .section-heading h2 {
-        font-size: 2.45rem;
-      }
-
-      .gallery-toolbar {
-        align-items: stretch;
-        flex-direction: column;
-        gap: 13px;
-      }
-
-      .filter-list {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 3px;
-        scrollbar-width: none;
-      }
-
-      .filter-list::-webkit-scrollbar {
-        display: none;
-      }
-
-      .filter-button {
-        flex: 0 0 auto;
-      }
-
-      .search-box {
-        width: 100%;
-      }
-
-      .gallery-meta {
-        font-size: 8px;
-      }
-
-      .scene-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      .scene-art {
-        aspect-ratio: 1.55 / 1;
-      }
-
-      .card-info p {
-        min-height: 0;
-      }
-
-      .about-section {
-        padding-bottom: 58px;
-      }
-
-      .about-content {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .about-content h2 {
-        grid-column: auto;
-        font-size: 2.8rem;
-      }
-
-      .about-link {
-        grid-column: auto;
-      }
-
-      .footer-inner {
-        min-height: 68px;
-      }
+      .container { width: calc(100% - 32px); }
+      .site-header { height: 69px; }
+      .header-nav { gap: 14px; }
+      .nav-link.nav-about { display: none; }
+      .nav-cta { width: 37px; min-height: 37px; justify-content: center; padding: 0; }
+      .nav-cta-label { display: none; }
+      .hero { gap: 32px; padding-top: 47px; padding-bottom: 57px; }
+      .hero .eyebrow { margin-bottom: 19px; font-size: 9px; }
+      .hero h1 { font-size: clamp(3.25rem, 13.7vw, 4.5rem); }
+      .hero-description { margin-top: 18px; font-size: 14px; }
+      .hero-actions { gap: 14px; margin-top: 24px; }
+      .hero-note { font-size: 10px; }
+      .hero-footnote { margin-top: 34px; font-size: 8px; }
+      .hero-visual { height: 330px; border-radius: 20px; }
+      .visual-sphere { width: 137px; height: 137px; }
+      .visual-orbit { width: 248px; height: 88px; }
+      .visual-orbit--two { width: 225px; height: 78px; }
+      .visual-platform { width: 215px; }
+      .gallery { padding-top: 10px; padding-bottom: 65px; }
+      .section-heading { margin-bottom: 25px; }
+      .section-heading h2 { font-size: 2.45rem; }
+      .gallery-toolbar { align-items: stretch; flex-direction: column; gap: 13px; }
+      .filter-list { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 3px; scrollbar-width: none; }
+      .filter-list::-webkit-scrollbar { display: none; }
+      .filter-button { flex: 0 0 auto; }
+      .search-box { width: 100%; }
+      .gallery-meta { font-size: 8px; }
+      .scene-grid { grid-template-columns: 1fr; gap: 14px; }
+      .scene-art { aspect-ratio: 1.55 / 1; }
+      .card-info p { min-height: 0; }
+      .about-section { padding-bottom: 58px; }
+      .about-content { grid-template-columns: 1fr; gap: 20px; }
+      .about-content h2 { grid-column: auto; font-size: 2.8rem; }
+      .about-link { grid-column: auto; }
+      .footer-inner { min-height: 68px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
+      *, *::before, *::after {
         scroll-behavior: auto !important;
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
@@ -1393,13 +654,8 @@
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="#top" aria-label="Form scene archive home">
-        <span class="brand-mark" aria-hidden="true">
-          <i></i><i></i><i></i><i></i>
-        </span>
-        <span class="brand-copy">
-          <strong>FORM</strong>
-          <span>SCENE ARCHIVE</span>
-        </span>
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="brand-copy"><strong>FORM</strong><span>SCENE ARCHIVE</span></span>
       </a>
 
       <nav class="header-nav" aria-label="Main navigation">
@@ -1447,10 +703,7 @@
 
       <div class="hero-visual" aria-hidden="true">
         <div class="visual-top">
-          <span class="visual-label">
-            <span class="visual-live-dot"></span>
-            FEATURED WORLD
-          </span>
+          <span class="visual-label"><span class="visual-live-dot"></span>FEATURED WORLD</span>
           <span>01 / 06</span>
         </div>
 
@@ -1482,31 +735,15 @@
 
       <div class="gallery-toolbar">
         <div class="filter-list" role="group" aria-label="Filter scenes">
-          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">
-            All scenes
-          </button>
-          <button class="filter-button" type="button" data-filter="abstract" aria-pressed="false">
-            Abstract
-          </button>
-          <button class="filter-button" type="button" data-filter="architecture" aria-pressed="false">
-            Architecture
-          </button>
-          <button class="filter-button" type="button" data-filter="landscape" aria-pressed="false">
-            Landscape
-          </button>
-          <button class="filter-button" type="button" data-filter="object" aria-pressed="false">
-            Objects
-          </button>
+          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All scenes</button>
+          <button class="filter-button" type="button" data-filter="abstract" aria-pressed="false">Abstract</button>
+          <button class="filter-button" type="button" data-filter="architecture" aria-pressed="false">Architecture</button>
+          <button class="filter-button" type="button" data-filter="landscape" aria-pressed="false">Landscape</button>
+          <button class="filter-button" type="button" data-filter="object" aria-pressed="false">Objects</button>
         </div>
 
         <label class="search-box">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-          >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"></circle>
             <path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
           </svg>
@@ -1519,187 +756,146 @@
         <span>Select a scene to open its world&nbsp; ↗</span>
       </div>
 
+      <!--
+        HOW TO ADD YOUR IMAGES
+        1. Put your image files in an "images" folder next to this file.
+        2. Update each <img src="..."> to match your file name
+           (jpg, png, webp and avif all work).
+        3. Update each alt="" with a short description of the picture.
+        4. Replace each href with the URL of its 3D scene.
+        Best results: images around 1.5:1, about 1200 x 800 px.
+      -->
       <div class="scene-grid" id="scene-grid">
-        <!-- Replace each href below with the URL of its 3D scene. -->
-
-        <a
-          class="scene-card"
-          href="boat1.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-category="abstract"
-        >
-          <span class="scene-art art-solstice" aria-hidden="true">
+        <a class="scene-card" href="boat1.html" target="_blank" rel="noopener noreferrer" data-category="abstract">
+          <span class="scene-art">
+            <img src="assets/Screenshot 2026-11-18 015857.png" alt="An amber sphere caught between light and shadow" width="1200" height="800" loading="lazy" decoding="async">
             <span class="art-label">SCENE 01</span>
-            <span class="shape shape-main"></span>
-            <span class="shape shape-secondary"></span>
-            <span class="shape shape-tertiary"></span>
             <span class="art-code">LIGHT / 01</span>
           </span>
-          <span class="card-info">
-            <span class="card-topline">
+          <div class="card-info">
+            <div class="card-topline">
               <span class="category-tag">Abstract</span>
               <span class="card-arrow" aria-hidden="true">↗</span>
-            </span>
-            <span>
-              <span class="card-info h3">Solstice</span>
-              <span class="card-info p">An amber sphere caught between light and shadow.</span>
-            </span>
-            <span class="card-bottom">
+            </div>
+            <div>
+              <h3>Solstice</h3>
+              <p>An amber sphere caught between light and shadow.</p>
+            </div>
+            <div class="card-bottom">
               <span>OPEN SCENE</span>
               <span class="card-bottom-line"></span>
-            </span>
-          </span>
+            </div>
+          </div>
         </a>
 
-        <a
-          class="scene-card"
-          href="scenes/soft-orbit.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-category="abstract"
-        >
-          <span class="scene-art art-soft-orbit" aria-hidden="true">
+        <a class="scene-card" href="scenes/soft-orbit.html" target="_blank" rel="noopener noreferrer" data-category="abstract">
+          <span class="scene-art">
+            <img src="images/soft-orbit.jpg" alt="A small sphere circled by a thin ring" width="1200" height="800" loading="lazy" decoding="async">
             <span class="art-label">SCENE 02</span>
-            <span class="shape shape-main"></span>
-            <span class="shape shape-secondary"></span>
-            <span class="shape shape-tertiary"></span>
             <span class="art-code">FORM / 02</span>
           </span>
-          <span class="card-info">
-            <span class="card-topline">
+          <div class="card-info">
+            <div class="card-topline">
               <span class="category-tag">Abstract</span>
               <span class="card-arrow" aria-hidden="true">↗</span>
-            </span>
-            <span>
-              <span class="card-info h3">Soft Orbit</span>
-              <span class="card-info p">A quiet study of balance, motion, and weight.</span>
-            </span>
-            <span class="card-bottom">
+            </div>
+            <div>
+              <h3>Soft Orbit</h3>
+              <p>A quiet study of balance, motion, and weight.</p>
+            </div>
+            <div class="card-bottom">
               <span>OPEN SCENE</span>
               <span class="card-bottom-line"></span>
-            </span>
-          </span>
+            </div>
+          </div>
         </a>
 
-        <a
-          class="scene-card"
-          href="scenes/the-monolith.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-category="architecture"
-        >
-          <span class="scene-art art-monolith" aria-hidden="true">
+        <a class="scene-card" href="scenes/the-monolith.html" target="_blank" rel="noopener noreferrer" data-category="architecture">
+          <span class="scene-art">
+            <img src="images/the-monolith.jpg" alt="A solitary dark monolith on a warm landscape" width="1200" height="800" loading="lazy" decoding="async">
             <span class="art-label">SCENE 03</span>
-            <span class="shape shape-main"></span>
-            <span class="shape shape-secondary"></span>
-            <span class="shape shape-tertiary"></span>
             <span class="art-code">STRUCTURE / 03</span>
           </span>
-          <span class="card-info">
-            <span class="card-topline">
+          <div class="card-info">
+            <div class="card-topline">
               <span class="category-tag">Architecture</span>
               <span class="card-arrow" aria-hidden="true">↗</span>
-            </span>
-            <span>
-              <span class="card-info h3">The Monolith</span>
-              <span class="card-info p">A solitary structure rising from a warm landscape.</span>
-            </span>
-            <span class="card-bottom">
+            </div>
+            <div>
+              <h3>The Monolith</h3>
+              <p>A solitary structure rising from a warm landscape.</p>
+            </div>
+            <div class="card-bottom">
               <span>OPEN SCENE</span>
               <span class="card-bottom-line"></span>
-            </span>
-          </span>
+            </div>
+          </div>
         </a>
 
-        <a
-          class="scene-card"
-          href="scenes/quiet-atrium.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-category="architecture"
-        >
-          <span class="scene-art art-quiet-atrium" aria-hidden="true">
+        <a class="scene-card" href="scenes/quiet-atrium.html" target="_blank" rel="noopener noreferrer" data-category="architecture">
+          <span class="scene-art">
+            <img src="images/quiet-atrium.jpg" alt="A light-filled interior with soft arched forms" width="1200" height="800" loading="lazy" decoding="async">
             <span class="art-label">SCENE 04</span>
-            <span class="shape shape-main"></span>
-            <span class="shape shape-secondary"></span>
-            <span class="shape shape-tertiary"></span>
             <span class="art-code">INTERIOR / 04</span>
           </span>
-          <span class="card-info">
-            <span class="card-topline">
+          <div class="card-info">
+            <div class="card-topline">
               <span class="category-tag">Architecture</span>
               <span class="card-arrow" aria-hidden="true">↗</span>
-            </span>
-            <span>
-              <span class="card-info h3">Quiet Atrium</span>
-              <span class="card-info p">A light-filled interior built from soft geometry.</span>
-            </span>
-            <span class="card-bottom">
+            </div>
+            <div>
+              <h3>Quiet Atrium</h3>
+              <p>A light-filled interior built from soft geometry.</p>
+            </div>
+            <div class="card-bottom">
               <span>OPEN SCENE</span>
               <span class="card-bottom-line"></span>
-            </span>
-          </span>
+            </div>
+          </div>
         </a>
 
-        <a
-          class="scene-card"
-          href="scenes/after-the-tide.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-category="landscape"
-        >
-          <span class="scene-art art-after-tide" aria-hidden="true">
+        <a class="scene-card" href="scenes/after-the-tide.html" target="_blank" rel="noopener noreferrer" data-category="landscape">
+          <span class="scene-art">
+            <img src="images/after-the-tide.jpg" alt="A sandy shoreline with a low sun" width="1200" height="800" loading="lazy" decoding="async">
             <span class="art-label">SCENE 05</span>
-            <span class="shape shape-main"></span>
-            <span class="shape shape-secondary"></span>
-            <span class="shape shape-tertiary"></span>
             <span class="art-code">TERRAIN / 05</span>
           </span>
-          <span class="card-info">
-            <span class="card-topline">
+          <div class="card-info">
+            <div class="card-topline">
               <span class="category-tag">Landscape</span>
               <span class="card-arrow" aria-hidden="true">↗</span>
-            </span>
-            <span>
-              <span class="card-info h3">After the Tide</span>
-              <span class="card-info p">An imagined shoreline shaped by slow-moving forms.</span>
-            </span>
-            <span class="card-bottom">
+            </div>
+            <div>
+              <h3>After the Tide</h3>
+              <p>An imagined shoreline shaped by slow-moving forms.</p>
+            </div>
+            <div class="card-bottom">
               <span>OPEN SCENE</span>
               <span class="card-bottom-line"></span>
-            </span>
-          </span>
+            </div>
+          </div>
         </a>
 
-        <a
-          class="scene-card"
-          href="scenes/object-04.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          data-category="object"
-        >
-          <span class="scene-art art-object-04" aria-hidden="true">
+        <a class="scene-card" href="scenes/object-04.html" target="_blank" rel="noopener noreferrer" data-category="object">
+          <span class="scene-art">
+            <img src="images/object-04.jpg" alt="A reflective sphere with a ring on a dark background" width="1200" height="800" loading="lazy" decoding="async">
             <span class="art-label">SCENE 06</span>
-            <span class="shape shape-main"></span>
-            <span class="shape shape-secondary"></span>
-            <span class="shape shape-tertiary"></span>
             <span class="art-code">OBJECT / 06</span>
           </span>
-          <span class="card-info">
-            <span class="card-topline">
+          <div class="card-info">
+            <div class="card-topline">
               <span class="category-tag">Object</span>
               <span class="card-arrow" aria-hidden="true">↗</span>
-            </span>
-            <span>
-              <span class="card-info h3">Object No. 04</span>
-              <span class="card-info p">A reflective object study with a little gravity.</span>
-            </span>
-            <span class="card-bottom">
+            </div>
+            <div>
+              <h3>Object No. 04</h3>
+              <p>A reflective object study with a little gravity.</p>
+            </div>
+            <div class="card-bottom">
               <span>OPEN SCENE</span>
               <span class="card-bottom-line"></span>
-            </span>
-          </span>
+            </div>
+          </div>
         </a>
       </div>
 
@@ -1732,13 +928,8 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <a class="brand" href="#top" aria-label="Form scene archive, back to top">
-        <span class="brand-mark" aria-hidden="true">
-          <i></i><i></i><i></i><i></i>
-        </span>
-        <span class="brand-copy">
-          <strong>FORM</strong>
-          <span>SCENE ARCHIVE</span>
-        </span>
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="brand-copy"><strong>FORM</strong><span>SCENE ARCHIVE</span></span>
       </a>
       <span class="footer-note">Made for curious minds.</span>
       <a class="footer-top" href="#top">Back to top ↑</a>
@@ -1766,10 +957,7 @@
         const isVisible = matchesCategory && matchesSearch;
 
         card.hidden = !isVisible;
-
-        if (isVisible) {
-          visibleCount += 1;
-        }
+        if (isVisible) visibleCount += 1;
       });
 
       sceneCount.textContent =
@@ -1780,14 +968,9 @@
     filterButtons.forEach((button) => {
       button.addEventListener("click", () => {
         activeFilter = button.dataset.filter;
-
         filterButtons.forEach((item) => {
-          item.setAttribute(
-            "aria-pressed",
-            String(item === button)
-          );
+          item.setAttribute("aria-pressed", String(item === button));
         });
-
         updateScenes();
       });
     });
@@ -1797,16 +980,19 @@
     resetButton.addEventListener("click", () => {
       activeFilter = "all";
       searchInput.value = "";
-
       filterButtons.forEach((button) => {
-        button.setAttribute(
-          "aria-pressed",
-          String(button.dataset.filter === "all")
-        );
+        button.setAttribute("aria-pressed", String(button.dataset.filter === "all"));
       });
-
       updateScenes();
       searchInput.focus();
+    });
+
+    // If an image file is missing, hide the broken-image icon so the
+    // neutral gradient frame shows instead.
+    document.querySelectorAll(".scene-art img").forEach((img) => {
+      const hideIfBroken = () => { img.hidden = true; };
+      img.addEventListener("error", hideIfBroken);
+      if (img.complete && img.naturalWidth === 0) hideIfBroken();
     });
   </script>
 </body>
