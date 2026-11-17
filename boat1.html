@@ -345,6 +345,19 @@
     }
   </style>
 
+  <!-- Global Safeguard Script so Loader Never Freezes Silently -->
+  <script>
+    window.addEventListener('error', function (ev) {
+      var lbl = document.getElementById('loader-label');
+      var spn = document.getElementById('loader-spinner');
+      if (spn) spn.style.display = 'none';
+      if (lbl) {
+        lbl.style.color = '#fca5a5';
+        lbl.textContent = 'Scene error: ' + (ev && ev.message ? ev.message : 'Unable to initialize WebGL.');
+      }
+    });
+  </script>
+
   <!-- Pinned Three.js r160 ES Module Import Map -->
   <script type="importmap">
     {
@@ -366,7 +379,7 @@
         <span class="title-text">Photorealistic 3D Beach Cutout Diorama</span>
       </div>
       <div class="subtitle-text">
-        44m × 36m Geological Slice • Pelagic Shark • Wave-Coupled Fleet • Drag to Orbit
+        44m × 46m Geological Slice • Coastal Fishing Hut • Pelagic Shark • Wave-Coupled Fleet
       </div>
     </div>
 
@@ -421,7 +434,7 @@
       <button data-preset="hero" class="preset-btn active">Panoramic Hero</button>
       <button data-preset="shark" class="preset-btn">Shark Patrol Cam</button>
       <button data-preset="boats" class="preset-btn">Sailboat &amp; Cove</button>
-      <button data-preset="swash" class="preset-btn">Shoreline Swash</button>
+      <button data-preset="swash" class="preset-btn">Fishing Hut &amp; Shore</button>
       <button data-preset="section" class="preset-btn">Deep Cut-Out Profile</button>
     </div>
   </div>
@@ -458,20 +471,17 @@
       }
     }
 
-    // Safety fallback so loader never stays stuck
-    setTimeout(dismissLoader, 1500);
-
     try {
       // =========================================================================
       // 1. DIORAMA DIMENSIONS & DETERMINISTIC NOISE / STATIC TOPOGRAPHY
       // =========================================================================
       const DIORAMA_W = 44.0;          // X: -22.0m to +22.0m
-      const DIORAMA_D = 36.0;          // Z: -18.0m to +18.0m
+      const DIORAMA_D = 46.0;          // Z: -23.0m to +23.0m (Extended Sea Basin)
       const HALF_W = DIORAMA_W * 0.5;  // 22.0m
-      const HALF_D = DIORAMA_D * 0.5;  // 18.0m
-      const BASE_Y = -7.20;            // Geological strata base elevation
-      const SEG_X = 240;               // Static terrain & water X grid resolution
-      const SEG_Z = 200;               // Static terrain & water Z grid resolution
+      const HALF_D = DIORAMA_D * 0.5;  // 23.0m
+      const BASE_Y = -7.60;            // Geological strata base elevation
+      const SEG_X = 220;               // Static terrain & water X grid resolution
+      const SEG_Z = 220;               // Static terrain & water Z grid resolution
 
       function fract(x) {
         return x - Math.floor(x);
@@ -528,30 +538,30 @@
       function getBeachHeight(x, z) {
         const coveCurve = Math.sin((x + 1.6) * 0.16) * 1.45 - Math.cos(x * 0.09) * 0.55;
         const headlandPromontory = Math.exp(-Math.pow((x + 17.5) / 4.8, 2.0)) * 2.15;
-        const effectiveZ = z + coveCurve - headlandPromontory;
+        const effectiveZ = z + 3.5 + coveCurve - headlandPromontory;
 
-        // Upper dry golden-sand beach berm & dunes (Z: -18 to -8.5)
-        const duneT = Math.max(0.0, (-4.5 - effectiveZ) / 13.5);
-        const duneProfile = Math.pow(duneT, 1.52) * 1.68;
-        const duneRidge = Math.exp(-Math.pow((effectiveZ + 12.4) / 3.2, 2.0)) * (0.34 + 0.22 * Math.sin(x * 0.28 + 0.6));
+        // Upper dry golden-sand beach berm & dunes (Z: -23 to -9.5)
+        const duneT = Math.max(0.0, (-4.5 - effectiveZ) / 15.0);
+        const duneProfile = Math.pow(duneT, 1.50) * 1.85;
+        const duneRidge = Math.exp(-Math.pow((effectiveZ + 13.4) / 3.4, 2.0)) * (0.34 + 0.22 * Math.sin(x * 0.28 + 0.6));
 
-        // Crescentic sloping foreshore & glossy wet-sand swash zone (Z: -8.5 to -1.5)
+        // Crescentic sloping foreshore & glossy wet-sand swash zone
         const foreshoreSlope = 0.66 - (effectiveZ + 4.5) * 0.195;
 
-        // Shallow submerged nearshore sandbar (Z: -1.5 to +5.0)
+        // Shallow submerged nearshore sandbar
         const offshoreBar = Math.exp(-Math.pow((effectiveZ - 3.2) / 1.45, 2.0)) * 0.26;
 
-        // Shelf drop-off into deep pelagic ocean basin (Z: +5.0 to +18.0, down to Y = -5.2m)
-        const shelfDrop = smoothstepJS(3.8, 7.6, effectiveZ) * 2.35;
-        const deepBasinFloor = smoothstepJS(7.0, 18.0, effectiveZ) * 0.58;
+        // Shelf drop-off into extended deep pelagic ocean basin (out to Z = +23.0m)
+        const shelfDrop = smoothstepJS(3.8, 7.8, effectiveZ) * 2.38;
+        const deepBasinFloor = smoothstepJS(7.2, 26.5, effectiveZ) * 0.78;
 
         let h = duneProfile + duneRidge + foreshoreSlope + offshoreBar - shelfDrop - deepBasinFloor;
 
-        // Left granite headland promontory (X < -10, Z: -16 to +3) with tiered ledges & two carved tidepools
-        const headlandShelf = smoothstepJS(-10.2, -18.2, x) * Math.exp(-Math.pow((z + 3.2) / 7.5, 2.0)) * 1.18;
+        // Left granite headland promontory (X < -10) with tiered ledges & two carved tidepools
+        const headlandShelf = smoothstepJS(-10.2, -18.2, x) * Math.exp(-Math.pow((z + 6.7) / 7.5, 2.0)) * 1.18;
         const ledgeStep = Math.floor(headlandShelf * 4.5) * 0.055 * smoothstepJS(-10.5, -15.0, x);
-        const tidePool1 = Math.exp(-((x + 15.2) * (x + 15.2) * 0.45 + (z + 0.5) * (z + 0.5) * 0.72)) * 0.78;
-        const tidePool2 = Math.exp(-((x + 18.0) * (x + 18.0) * 0.52 + (z - 1.4) * (z - 1.4) * 0.65)) * 0.68;
+        const tidePool1 = Math.exp(-((x + 15.2) * (x + 15.2) * 0.45 + (z + 4.0) * (z + 4.0) * 0.72)) * 0.78;
+        const tidePool2 = Math.exp(-((x + 18.0) * (x + 18.0) * 0.52 + (z + 2.1) * (z + 2.1) * 0.65)) * 0.68;
         h += headlandShelf + ledgeStep - tidePool1 - tidePool2;
 
         // Rhythmic crescentic beach cusps along the intertidal swash zone
@@ -560,7 +570,7 @@
         h += beachCusps;
 
         // Natural macro terrain undulations
-        const macroNoise = (fbm2D(x * 0.14 + 3.7, z * 0.14 + 2.1) - 0.5) * 0.32;
+        const macroNoise = (fbm2D(x * 0.14 + 3.7, z * 0.14 + 2.1) - 0.5) * 0.30;
         h += macroNoise * (0.35 + 0.65 * smoothstepJS(0.0, 6.0, Math.abs(effectiveZ + 1.0)));
 
         // Wind-sculpted asymmetric sand ripples on the dry upper berm (h > 0.42)
@@ -573,7 +583,7 @@
         const seabedRipplePhase = (effectiveZ * 6.2 + Math.sin(x * 0.55) * 1.3) + fbm2D(x * 0.50, z * 0.50) * 1.8;
         const seabedRipples = Math.sin(seabedRipplePhase) * 0.025 * subMask;
 
-        return Math.max(-5.25, h + windRipples + seabedRipples);
+        return Math.max(-5.55, h + windRipples + seabedRipples);
       }
 
       // =========================================================================
@@ -685,30 +695,30 @@
 
           float coveCurve = sin((x + 1.6) * 0.16) * 1.45 - cos(x * 0.09) * 0.55;
           float headlandPromontory = exp(-pow((x + 17.5) / 4.8, 2.0)) * 2.15;
-          float effectiveZ = z + coveCurve - headlandPromontory;
+          float effectiveZ = z + 3.5 + coveCurve - headlandPromontory;
 
-          float duneT = max(0.0, (-4.5 - effectiveZ) / 13.5);
-          float duneProfile = pow(duneT, 1.52) * 1.68;
-          float duneRidge = exp(-pow((effectiveZ + 12.4) / 3.2, 2.0)) * (0.34 + 0.22 * sin(x * 0.28 + 0.6));
+          float duneT = max(0.0, (-4.5 - effectiveZ) / 15.0);
+          float duneProfile = pow(duneT, 1.50) * 1.85;
+          float duneRidge = exp(-pow((effectiveZ + 13.4) / 3.4, 2.0)) * (0.34 + 0.22 * sin(x * 0.28 + 0.6));
 
           float foreshoreSlope = 0.66 - (effectiveZ + 4.5) * 0.195;
           float offshoreBar = exp(-pow((effectiveZ - 3.2) / 1.45, 2.0)) * 0.26;
-          float shelfDrop = smoothstep(3.8, 7.6, effectiveZ) * 2.35;
-          float deepBasinFloor = smoothstep(7.0, 18.0, effectiveZ) * 0.58;
+          float shelfDrop = smoothstep(3.8, 7.8, effectiveZ) * 2.38;
+          float deepBasinFloor = smoothstep(7.2, 26.5, effectiveZ) * 0.78;
 
           float h = duneProfile + duneRidge + foreshoreSlope + offshoreBar - shelfDrop - deepBasinFloor;
 
-          float headlandShelf = smoothstep(-10.2, -18.2, x) * exp(-pow((z + 3.2) / 7.5, 2.0)) * 1.18;
+          float headlandShelf = smoothstep(-10.2, -18.2, x) * exp(-pow((z + 6.7) / 7.5, 2.0)) * 1.18;
           float ledgeStep = floor(headlandShelf * 4.5) * 0.055 * smoothstep(-10.5, -15.0, x);
-          float tidePool1 = exp(-((x + 15.2) * (x + 15.2) * 0.45 + (z + 0.5) * (z + 0.5) * 0.72)) * 0.78;
-          float tidePool2 = exp(-((x + 18.0) * (x + 18.0) * 0.52 + (z - 1.4) * (z - 1.4) * 0.65)) * 0.68;
+          float tidePool1 = exp(-((x + 15.2) * (x + 15.2) * 0.45 + (z + 4.0) * (z + 4.0) * 0.72)) * 0.78;
+          float tidePool2 = exp(-((x + 18.0) * (x + 18.0) * 0.52 + (z + 2.1) * (z + 2.1) * 0.65)) * 0.68;
           h += headlandShelf + ledgeStep - tidePool1 - tidePool2;
 
           float cuspEnv = exp(-pow((effectiveZ + 2.2) / 2.6, 2.0)) * smoothstep(-12.5, -7.0, x);
           float beachCusps = cos(x * 0.90 + 0.4) * 0.072 * cuspEnv;
           h += beachCusps;
 
-          float macroNoise = (fbm2D(vec2(x * 0.14 + 3.7, z * 0.14 + 2.1)) - 0.5) * 0.32;
+          float macroNoise = (fbm2D(vec2(x * 0.14 + 3.7, z * 0.14 + 2.1)) - 0.5) * 0.30;
           h += macroNoise * (0.35 + 0.65 * smoothstep(0.0, 6.0, abs(effectiveZ + 1.0)));
 
           float dryMask = smoothstep(0.38, 0.84, h);
@@ -719,7 +729,7 @@
           float seabedRipplePhase = (effectiveZ * 6.2 + sin(x * 0.55) * 1.3) + fbm2D(vec2(x * 0.50, z * 0.50)) * 1.8;
           float seabedRipples = sin(seabedRipplePhase) * 0.025 * subMask;
 
-          return max(-5.25, h + windRipples + seabedRipples);
+          return max(-5.55, h + windRipples + seabedRipples);
         }
 
         vec3 gerstnerWave(vec2 pos, vec2 dir, float steepness, float wavelength, float speed, float time) {
@@ -774,7 +784,7 @@
           float shoalBoost = 1.0 + 0.28 * exp(-pow((sandY + 0.42) / 0.34, 2.0));
 
           float borderLockX = smoothstep(22.0, 21.25, abs(x));
-          float borderLockZ = smoothstep(18.0, 17.25, abs(z));
+          float borderLockZ = smoothstep(23.0, 22.25, abs(z));
           float horizMask = deepOceanMask * borderLockX * borderLockZ;
 
           vec2 horizOffset = gerstnerSum.xz * horizMask * shoalBoost;
@@ -813,36 +823,36 @@
       container.appendChild(renderer.domElement);
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.18, 320);
+      const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.18, 340);
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.055;
       controls.minDistance = 4.0;
-      controls.maxDistance = 88.0;
+      controls.maxDistance = 96.0;
       controls.maxPolarAngle = Math.PI * 0.495;
 
       const CAMERA_PRESETS = {
         hero: {
-          pos: new THREE.Vector3(38.0, 22.5, 39.0),
-          target: new THREE.Vector3(-0.4, -1.65, 1.2)
+          pos: new THREE.Vector3(42.5, 24.8, 46.0),
+          target: new THREE.Vector3(0.4, -1.55, 0.2)
         },
         shark: {
-          pos: new THREE.Vector3(4.5, -0.5, 15.8),
-          target: new THREE.Vector3(0.0, -2.0, 11.4),
+          pos: new THREE.Vector3(4.5, -0.5, 18.5),
+          target: new THREE.Vector3(0.0, -2.15, 14.2),
           followShark: true
         },
         boats: {
-          pos: new THREE.Vector3(14.8, 5.2, 18.2),
-          target: new THREE.Vector3(1.8, 0.35, 6.4)
+          pos: new THREE.Vector3(19.5, 6.8, 19.2),
+          target: new THREE.Vector3(0.5, 0.65, 3.8)
         },
         swash: {
-          pos: new THREE.Vector3(9.4, 3.8, 2.2),
-          target: new THREE.Vector3(-2.4, 0.15, -3.2)
+          pos: new THREE.Vector3(19.2, 4.4, -3.5),
+          target: new THREE.Vector3(9.8, 1.35, -12.6)
         },
         section: {
-          pos: new THREE.Vector3(35.8, 2.4, 15.4),
-          target: new THREE.Vector3(1.0, -2.25, 7.8)
+          pos: new THREE.Vector3(38.5, 2.6, 20.5),
+          target: new THREE.Vector3(1.0, -2.35, 10.0)
         }
       };
 
@@ -992,9 +1002,11 @@
         uResolution: { value: new THREE.Vector2(rtSize.x, rtSize.y) },
         uBoats: {
           value: [
-            new THREE.Vector4(5.8, 6.2, 2.40, 0.74),
-            new THREE.Vector4(-6.8, 4.6, 1.75, 0.58),
-            new THREE.Vector4(2.4, 7.4, 1.15, 0.46)
+            new THREE.Vector4(5.8, 3.4, 2.40, 0.74),
+            new THREE.Vector4(-6.8, 1.8, 1.75, 0.58),
+            new THREE.Vector4(2.4, 4.6, 1.15, 0.46),
+            new THREE.Vector4(-11.8, 8.2, 2.15, 0.72),
+            new THREE.Vector4(13.6, 1.8, 1.85, 0.60)
           ]
         }
       };
@@ -1003,7 +1015,6 @@
       // 4. PROCEDURAL PBR DATA TEXTURES FOR SAND, STRATA, ROCKS & WOODEN FLEET
       // =========================================================================
       function createQuartzSandTextures() {
-        // World-mapped 512x512 roughness + bump + quartz sparkle textures
         const w = 512;
         const h = 512;
         const roughData = new Uint8Array(w * h * 4);
@@ -1023,13 +1034,11 @@
             let roughVal = THREE.MathUtils.lerp(0.88, 0.09, Math.pow(wetness, 1.3));
             roughVal += (grain - 0.5) * 0.05;
 
-            // Quartz micro-sparkles on dry sand
             if (wetness < 0.25 && fine > 0.968) {
               roughVal = 0.08;
             }
             const rByte = Math.round(THREE.MathUtils.clamp(roughVal, 0.05, 0.96) * 255);
 
-            // Fine sand grain bump map attenuated in smooth wet swash zone
             const bumpAmp = THREE.MathUtils.lerp(1.0, 0.14, wetness);
             const bByte = Math.round(THREE.MathUtils.clamp(0.5 + (grain - 0.5) * 0.85 * bumpAmp, 0.0, 1.0) * 255);
 
@@ -1069,7 +1078,6 @@
         const data = new Uint8Array(w * h * 4);
 
         for (let iy = 0; iy < h; iy++) {
-          // v = 0 is top surface, v = 1 is bottom base (-7.2m)
           const v = 1.0 - iy / (h - 1);
           const depthApprox = v * 8.5;
 
@@ -1078,7 +1086,6 @@
             const bedWarp = (fbm2D(u * 26.0, v * 12.0) - 0.5) * 0.35;
             const d = depthApprox + bedWarp;
 
-            // Cross-bedded tidal laminae & heavy-mineral magnetite placer streaks
             const lamina = Math.sin((v * 95.0 + bedWarp * 4.5) + fbm2D(u * 40.0, v * 16.0) * 3.2);
             const heavyPlacer = smoothstepJS(0.84, 0.98, lamina) * smoothstepJS(0.15, 0.55, d) * (1.0 - smoothstepJS(1.6, 2.6, d));
 
@@ -1086,7 +1093,7 @@
             const gravel = smoothstepJS(0.83, 0.96, valueNoise2D(ix * 0.24, iy * 0.30));
             const shellHash = smoothstepJS(0.91, 0.99, valueNoise2D(ix * 0.45 + 11.3, iy * 0.52 + 4.7));
 
-            let r = 0.87, g = 0.75, b = 0.56; // Top fine quartz sand
+            let r = 0.87, g = 0.75, b = 0.56;
             const tMid = smoothstepJS(0.15, 0.75, d);
             r = THREE.MathUtils.lerp(r, 0.66, tMid);
             g = THREE.MathUtils.lerp(g, 0.52, tMid);
@@ -1107,12 +1114,10 @@
             g = THREE.MathUtils.lerp(g, 0.17, tBedrock);
             b = THREE.MathUtils.lerp(b, 0.20, tBedrock);
 
-            // Heavy-mineral dark magnetite bands
             r = THREE.MathUtils.lerp(r, 0.20, heavyPlacer * 0.52);
             g = THREE.MathUtils.lerp(g, 0.17, heavyPlacer * 0.52);
             b = THREE.MathUtils.lerp(b, 0.15, heavyPlacer * 0.52);
 
-            // Crushed white shell-hash horizon & gravel clasts
             const shellMask = shellHash * (1.0 - smoothstepJS(1.5, 2.8, d)) * 0.62;
             r = THREE.MathUtils.lerp(r, 0.95, shellMask);
             g = THREE.MathUtils.lerp(g, 0.92, shellMask);
@@ -1254,7 +1259,7 @@
       const buoyTex = createBuoyDataTexture();
 
       // =========================================================================
-      // 5. 100% STATIC SAND TERRAIN & SEABED MESH (240 × 200 GRID)
+      // 5. 100% STATIC SAND TERRAIN & SEABED MESH (220 × 220 GRID)
       // =========================================================================
       const sandGeo = new THREE.PlaneGeometry(DIORAMA_W, DIORAMA_D, SEG_X, SEG_Z);
       sandGeo.rotateX(-Math.PI / 2);
@@ -1275,7 +1280,6 @@
         const y = getBeachHeight(x, z);
         sandPos.setY(i, y);
 
-        // World-aligned UV so roughnessMap & bumpMap match the wet-sand swash envelope 1:1
         sandUV.setXY(i, (x + HALF_W) / DIORAMA_W, (z + HALF_D) / DIORAMA_D);
 
         const macroTone = fbm2D(x * 0.42 + 2.3, z * 0.42 + 1.9);
@@ -1288,7 +1292,6 @@
         c.offsetHSL(0, 0, (grainTone - 0.5) * 0.035);
         c.lerp(colShellFleck, shellFleck * 0.42);
 
-        // Glossy wet-sand darkening across the foreshore swash zone & seabed
         const wetness = 1.0 - smoothstepJS(0.18, 0.48, y);
         c.lerp(colWetAmber, wetness * 0.86);
 
@@ -1326,51 +1329,77 @@
         const colors = [];
         const indices = [];
 
-        function addWallStrip(segs, getPointAtT, normalVec) {
+        function addWallStrip(segs, getPointAtT, normalVec, uRepeat) {
           const baseVertexIndex = positions.length / 3;
           for (let i = 0; i <= segs; i++) {
             const t = i / segs;
             const pt = getPointAtT(t);
             const topY = getBeachHeight(pt.x, pt.z);
             const colH = Math.max(0.1, topY - BASE_Y);
-            const vBottom = Math.min(1.0, colH / 8.5);
+            const vBottom = Math.min(1.0, colH / 9.8);
 
             // Capillary water-table saturation darkening below sea level (+0.18m)
             const topWet = 1.0 - smoothstepJS(0.06, 0.30, topY);
             const graniteTint = smoothstepJS(-10.5, -18.5, pt.x);
 
-            const cTop = new THREE.Color(0xffffff);
-            cTop.lerp(new THREE.Color(0x888480), graniteTint * 0.48);
-            cTop.multiplyScalar(THREE.MathUtils.lerp(1.0, 0.72, topWet));
+            const topCol = new THREE.Color(0xffffff)
+              .lerp(new THREE.Color(0x6e604f), topWet * 0.58)
+              .lerp(new THREE.Color(0x7c7872), graniteTint * 0.55);
 
-            const cBot = new THREE.Color(0x646872);
-            cBot.lerp(new THREE.Color(0x525660), graniteTint * 0.55);
+            const botCol = new THREE.Color(0x7d7973)
+              .lerp(new THREE.Color(0x5b5d62), graniteTint * 0.45);
 
+            // Top vertex along terrain edge
             positions.push(pt.x, topY, pt.z);
             normals.push(normalVec.x, normalVec.y, normalVec.z);
-            uvs.push(t * 4.5, 1.0);
-            colors.push(cTop.r, cTop.g, cTop.b);
+            uvs.push(t * uRepeat, 0.0);
+            colors.push(topCol.r, topCol.g, topCol.b);
 
+            // Bottom vertex along BASE_Y
             positions.push(pt.x, BASE_Y, pt.z);
             normals.push(normalVec.x, normalVec.y, normalVec.z);
-            uvs.push(t * 4.5, 1.0 - vBottom);
-            colors.push(cBot.r, cBot.g, cBot.b);
+            uvs.push(t * uRepeat, vBottom);
+            colors.push(botCol.r, botCol.g, botCol.b);
           }
 
           for (let i = 0; i < segs; i++) {
-            const i0 = baseVertexIndex + i * 2;
-            const i1 = i0 + 1;
-            const i2 = i0 + 2;
-            const i3 = i0 + 3;
-            indices.push(i0, i1, i2);
-            indices.push(i2, i1, i3);
+            const a = baseVertexIndex + i * 2;
+            const b = a + 1;
+            const c = a + 2;
+            const d = a + 3;
+            indices.push(a, b, c);
+            indices.push(b, d, c);
           }
         }
 
-        addWallStrip(SEG_X, (t) => ({ x: -HALF_W + t * DIORAMA_W, z: HALF_D }), new THREE.Vector3(0, 0, 1));
-        addWallStrip(SEG_X, (t) => ({ x: HALF_W - t * DIORAMA_W, z: -HALF_D }), new THREE.Vector3(0, 0, -1));
-        addWallStrip(SEG_Z, (t) => ({ x: HALF_W, z: HALF_D - t * DIORAMA_D }), new THREE.Vector3(1, 0, 0));
-        addWallStrip(SEG_Z, (t) => ({ x: -HALF_W, z: -HALF_D + t * DIORAMA_D }), new THREE.Vector3(-1, 0, 0));
+        // Front wall (Z = +HALF_D, normal +Z)
+        addWallStrip(
+          SEG_X,
+          (t) => ({ x: -HALF_W + t * DIORAMA_W, z: HALF_D }),
+          new THREE.Vector3(0, 0, 1),
+          4.0
+        );
+        // Right wall (X = +HALF_W, normal +X)
+        addWallStrip(
+          SEG_Z,
+          (t) => ({ x: HALF_W, z: HALF_D - t * DIORAMA_D }),
+          new THREE.Vector3(1, 0, 0),
+          4.2
+        );
+        // Back wall (Z = -HALF_D, normal -Z)
+        addWallStrip(
+          SEG_X,
+          (t) => ({ x: HALF_W - t * DIORAMA_W, z: -HALF_D }),
+          new THREE.Vector3(0, 0, -1),
+          4.0
+        );
+        // Left wall (X = -HALF_W, normal -X)
+        addWallStrip(
+          SEG_Z,
+          (t) => ({ x: -HALF_W, z: -HALF_D + t * DIORAMA_D }),
+          new THREE.Vector3(-1, 0, 0),
+          4.2
+        );
 
         const wallGeo = new THREE.BufferGeometry();
         wallGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -1379,357 +1408,314 @@
         wallGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         wallGeo.setIndex(indices);
 
-        const strataMat = new THREE.MeshStandardMaterial({
+        const wallMat = new THREE.MeshStandardMaterial({
           map: strataTex,
           bumpMap: strataTex,
-          bumpScale: 0.024,
+          bumpScale: 0.032,
           vertexColors: true,
-          roughness: 0.88,
-          metalness: 0.02
+          roughness: 0.86,
+          metalness: 0.03
         });
 
-        const wallsMesh = new THREE.Mesh(wallGeo, strataMat);
-        wallsMesh.receiveShadow = true;
-        wallsMesh.castShadow = true;
-        group.add(wallsMesh);
+        const strataWalls = new THREE.Mesh(wallGeo, wallMat);
+        strataWalls.receiveShadow = true;
+        strataWalls.castShadow = true;
+        group.add(strataWalls);
 
-        // Architectural Slate Plinth Base (Y = -7.2m to -7.8m)
-        const plinthGeo = new THREE.BoxGeometry(DIORAMA_W + 0.18, 0.60, DIORAMA_D + 0.18);
-        const plinthMat = new THREE.MeshStandardMaterial({
-          color: 0x131923,
+        // Architectural Museum Slate Plinth Base & Brushed Brass Inlay Trim
+        const slateMat = new THREE.MeshStandardMaterial({
+          color: 0x151d28,
           roughness: 0.42,
-          metalness: 0.38
+          metalness: 0.25
         });
-        const plinthMesh = new THREE.Mesh(plinthGeo, plinthMat);
-        plinthMesh.position.set(0, BASE_Y - 0.30, 0);
-        plinthMesh.receiveShadow = true;
-        group.add(plinthMesh);
-
-        // Brushed titanium bevel trim around plinth top
-        const trimGeo = new THREE.BoxGeometry(DIORAMA_W + 0.22, 0.04, DIORAMA_D + 0.22);
-        const trimMat = new THREE.MeshStandardMaterial({
-          color: 0x475569,
-          roughness: 0.28,
-          metalness: 0.76
+        const brassTrimMat = new THREE.MeshStandardMaterial({
+          color: 0xb6955a,
+          roughness: 0.30,
+          metalness: 0.82
         });
-        const trimMesh = new THREE.Mesh(trimGeo, trimMat);
-        trimMesh.position.set(0, BASE_Y - 0.02, 0);
-        group.add(trimMesh);
 
-        // Soft studio contact shadow underneath the plinth
-        const sw = 128, sh = 128;
-        const sData = new Uint8Array(sw * sh * 4);
-        for (let iy = 0; iy < sh; iy++) {
-          for (let ix = 0; ix < sw; ix++) {
-            const dx = (ix / (sw - 1)) * 2 - 1;
-            const dy = (iy / (sh - 1)) * 2 - 1;
-            const dist = Math.hypot(dx, dy);
-            const alpha = Math.pow(Math.max(0, 1.0 - smoothstepJS(0.25, 1.0, dist)), 1.6) * 0.72;
-            const idx = (iy * sw + ix) * 4;
-            sData[idx] = 0;
-            sData[idx + 1] = 0;
-            sData[idx + 2] = 0;
-            sData[idx + 3] = Math.round(alpha * 255);
-          }
-        }
-        const contactTex = new THREE.DataTexture(sData, sw, sh, THREE.RGBAFormat);
-        contactTex.needsUpdate = true;
-        const contactPlane = new THREE.Mesh(
-          new THREE.PlaneGeometry(62.0, 52.0),
-          new THREE.MeshBasicMaterial({ map: contactTex, transparent: true, depthWrite: false })
+        const upperSlab = new THREE.Mesh(
+          new THREE.BoxGeometry(DIORAMA_W + 0.36, 0.28, DIORAMA_D + 0.36),
+          slateMat
         );
-        contactPlane.rotation.x = -Math.PI / 2;
-        contactPlane.position.y = BASE_Y - 0.605;
-        group.add(contactPlane);
+        upperSlab.position.set(0, BASE_Y - 0.14, 0);
+        upperSlab.receiveShadow = true;
+        group.add(upperSlab);
+
+        const brassInlay = new THREE.Mesh(
+          new THREE.BoxGeometry(DIORAMA_W + 0.42, 0.045, DIORAMA_D + 0.42),
+          brassTrimMat
+        );
+        brassInlay.position.set(0, BASE_Y - 0.29, 0);
+        group.add(brassInlay);
+
+        const lowerPlinth = new THREE.Mesh(
+          new THREE.BoxGeometry(DIORAMA_W + 0.96, 0.42, DIORAMA_D + 0.96),
+          slateMat
+        );
+        lowerPlinth.position.set(0, BASE_Y - 0.52, 0);
+        lowerPlinth.receiveShadow = true;
+        group.add(lowerPlinth);
 
         return group;
       }
-
       scene.add(buildGeologicalCutoutWalls());
 
       // =========================================================================
-      // 7. SHINY REFRACTIVE OCEAN WAVES & FOUR VOLUMETRIC WATER SIDE-WALLS
+      // 7. REFRACTIVE GERSTNER OCEAN SURFACE & VOLUMETRIC WATER SIDE-WALLS
       // =========================================================================
-      const waterTopGeo = new THREE.PlaneGeometry(DIORAMA_W, DIORAMA_D, SEG_X, SEG_Z);
-      waterTopGeo.rotateX(-Math.PI / 2);
+      function createOceanSurfaceAndWalls() {
+        // A. Top Ocean Surface Mesh (220 x 220 Grid)
+        const waterGeo = new THREE.PlaneGeometry(DIORAMA_W, DIORAMA_D, SEG_X, SEG_Z);
+        waterGeo.rotateX(-Math.PI / 2);
 
-      const wPos = waterTopGeo.attributes.position;
-      const sandHeightAttr = new Float32Array(wPos.count);
-      for (let i = 0; i < wPos.count; i++) {
-        sandHeightAttr[i] = getBeachHeight(wPos.getX(i), wPos.getZ(i));
-      }
-      waterTopGeo.setAttribute('aSandY', new THREE.BufferAttribute(sandHeightAttr, 1));
+        const waterTopMat = new THREE.ShaderMaterial({
+          transparent: true,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+          uniforms: {
+            uTime: sharedUniforms.uTime,
+            uWaveIntensity: sharedUniforms.uWaveIntensity,
+            uWaterClarity: sharedUniforms.uWaterClarity,
+            uSunDir: sharedUniforms.uSunDir,
+            uSunColor: sharedUniforms.uSunColor,
+            uRefractionMap: sharedUniforms.uRefractionMap,
+            uResolution: sharedUniforms.uResolution,
+            uBoats: sharedUniforms.uBoats
+          },
+          vertexShader: /* glsl */ `
+            uniform float uTime;
+            uniform float uWaveIntensity;
 
-      const waterTopMaterial = new THREE.ShaderMaterial({
-        transparent: true,
-        depthWrite: true,
-        side: THREE.FrontSide,
-        uniforms: {
-          uTime: sharedUniforms.uTime,
-          uWaveIntensity: sharedUniforms.uWaveIntensity,
-          uWaterClarity: sharedUniforms.uWaterClarity,
-          uSunDir: sharedUniforms.uSunDir,
-          uSunColor: sharedUniforms.uSunColor,
-          uRefractionMap: sharedUniforms.uRefractionMap,
-          uResolution: sharedUniforms.uResolution,
-          uBoats: sharedUniforms.uBoats
-        },
-        vertexShader: /* glsl */ `
-          attribute float aSandY;
-          uniform float uTime;
-          uniform float uWaveIntensity;
+            varying vec3 vWorldPos;
+            varying vec3 vWorldNormal;
+            varying vec2 vBaseXZ;
+            varying float vDepth;
+            varying float vSwashVel;
+            varying float vCrestFactor;
 
-          varying vec3 vWorldPos;
-          varying vec2 vBaseXZ;
-          varying float vSandY;
-          varying float vDepth;
-          varying float vSwashVel;
-          varying float vCrestFactor;
+            ${GLSL_SHARED_NOISE_AND_WAVES}
 
-          ${GLSL_SHARED_NOISE_AND_WAVES}
+            void main() {
+              vec2 baseXZ = position.xz;
+              vBaseXZ = baseXZ;
 
-          void main() {
-            vBaseXZ = position.xz;
-            vSandY = aSandY;
+              float sandC = getSandElevation(baseXZ);
+              WaveState wsC = evaluateOceanWave(baseXZ, sandC, uTime, uWaveIntensity);
 
-            WaveState ws = evaluateOceanWave(position.xz, aSandY, uTime, uWaveIntensity);
-            vWorldPos = ws.displacedPos;
-            vDepth = ws.depth;
-            vSwashVel = ws.swashVelocity;
-            vCrestFactor = ws.crestFactor;
+              // Finite-difference surface normal for accurate refraction & specular glints
+              float eps = 0.14;
+              vec2 xzX = baseXZ + vec2(eps, 0.0);
+              vec2 xzZ = baseXZ + vec2(0.0, eps);
+              WaveState wsX = evaluateOceanWave(xzX, getSandElevation(xzX), uTime, uWaveIntensity);
+              WaveState wsZ = evaluateOceanWave(xzZ, getSandElevation(xzZ), uTime, uWaveIntensity);
 
-            gl_Position = projectionMatrix * viewMatrix * vec4(ws.displacedPos, 1.0);
-          }
-        `,
-        fragmentShader: /* glsl */ `
-          uniform float uTime;
-          uniform float uWaveIntensity;
-          uniform float uWaterClarity;
-          uniform vec3 uSunDir;
-          uniform vec3 uSunColor;
-          uniform sampler2D uRefractionMap;
-          uniform vec2 uResolution;
-          uniform vec4 uBoats[3];
+              vec3 dX = wsX.displacedPos - wsC.displacedPos;
+              vec3 dZ = wsZ.displacedPos - wsC.displacedPos;
+              vec3 surfNormal = normalize(cross(dZ, dX));
+              if (surfNormal.y < 0.0) surfNormal = -surfNormal;
 
-          varying vec3 vWorldPos;
-          varying vec2 vBaseXZ;
-          varying float vSandY;
-          varying float vDepth;
-          varying float vSwashVel;
-          varying float vCrestFactor;
+              vDepth = wsC.depth;
+              vSwashVel = wsC.swashVelocity;
+              vCrestFactor = wsC.crestFactor;
 
-          ${GLSL_SHARED_NOISE_AND_WAVES}
+              vec4 worldPos = modelMatrix * vec4(wsC.displacedPos, 1.0);
+              vWorldPos = worldPos.xyz;
+              vWorldNormal = normalize(mat3(modelMatrix) * surfNormal);
 
-          float voronoiFoam(vec2 x) {
-            vec2 n = floor(x);
-            vec2 f = fract(x);
-            float md = 8.0;
-            for (int j = -1; j <= 1; j++) {
-              for (int i = -1; i <= 1; i++) {
-                vec2 g = vec2(float(i), float(j));
-                vec2 o = vec2(hash21(n + g), hash21(n + g + vec2(17.3, 41.9)));
-                o = 0.5 + 0.42 * sin(uTime * 0.65 + 6.2831 * o);
-                vec2 r = g + o - f;
-                float d = dot(r, r);
-                md = min(md, d);
+              gl_Position = projectionMatrix * viewMatrix * worldPos;
+            }
+          `,
+          fragmentShader: /* glsl */ `
+            uniform float uTime;
+            uniform float uWaveIntensity;
+            uniform float uWaterClarity;
+            uniform vec3 uSunDir;
+            uniform vec3 uSunColor;
+            uniform sampler2D uRefractionMap;
+            uniform vec2 uResolution;
+            uniform vec4 uBoats[5];
+
+            varying vec3 vWorldPos;
+            varying vec3 vWorldNormal;
+            varying vec2 vBaseXZ;
+            varying float vDepth;
+            varying float vSwashVel;
+            varying float vCrestFactor;
+
+            ${GLSL_SHARED_NOISE_AND_WAVES}
+
+            float causticLayer(vec2 uv, float t) {
+              vec2 p = mod(uv * 6.2831853, 6.2831853) - 250.0;
+              vec2 i = p;
+              float c = 1.0;
+              float inten = 0.005;
+              for (int n = 0; n < 3; n++) {
+                float timeStep = t * (1.0 - (3.5 / float(n + 1)));
+                i = p + vec2(
+                  cos(timeStep - i.x) + sin(timeStep + i.y),
+                  sin(timeStep - i.y) + cos(timeStep + i.x)
+                );
+                c += 1.0 / length(vec2(
+                  p.x / (sin(i.x + timeStep) / inten),
+                  p.y / (cos(i.y + timeStep) / inten)
+                ));
               }
+              c /= 3.0;
+              c = 1.17 - pow(c, 1.4);
+              return pow(abs(c), 7.5);
             }
-            return sqrt(md);
-          }
 
-          float causticPattern(vec2 uv, float t) {
-            vec2 p = mod(uv * 6.2831853, 6.2831853) - 250.0;
-            vec2 i = p;
-            float c = 1.0;
-            float inten = 0.005;
-            for (int n = 0; n < 3; n++) {
-              float timeStep = t * (1.0 - (3.5 / float(n + 1)));
-              i = p + vec2(
-                cos(timeStep - i.x) + sin(timeStep + i.y),
-                sin(timeStep - i.y) + cos(timeStep + i.x)
+            void main() {
+              if (vDepth <= 0.001) discard;
+
+              // High-frequency capillary wind ripples layered onto wave normal
+              vec2 rUV1 = vBaseXZ * 1.45 + vec2(uTime * 0.42, -uTime * 0.68);
+              vec2 rUV2 = vBaseXZ * 3.10 + vec2(-uTime * 0.55, -uTime * 0.85);
+              float n1 = fbm2D(rUV1) - 0.5;
+              float n2 = fbm2D(rUV2) - 0.5;
+              vec3 ripplePerturb = vec3(n1 * 0.14 + n2 * 0.09, 0.0, n1 * 0.11 - n2 * 0.12);
+              vec3 N = normalize(vWorldNormal + ripplePerturb * smoothstep(0.01, 0.25, vDepth));
+
+              vec3 V = normalize(cameraPosition - vWorldPos);
+              vec3 L = normalize(uSunDir);
+
+              // 1. Screen-space Optical Refraction + Subtle Chromatic Dispersion
+              vec2 screenUV = gl_FragCoord.xy / max(uResolution, vec2(1.0));
+              float refractStrength = 0.032 * clamp(vDepth, 0.04, 1.65);
+              vec2 refractOffset = N.xz * refractStrength;
+
+              vec2 uvR = clamp(screenUV + refractOffset * 1.06, vec2(0.002), vec2(0.998));
+              vec2 uvG = clamp(screenUV + refractOffset * 1.00, vec2(0.002), vec2(0.998));
+              vec2 uvB = clamp(screenUV + refractOffset * 0.94, vec2(0.002), vec2(0.998));
+
+              vec3 refractedScene = vec3(
+                texture2D(uRefractionMap, uvR).r,
+                texture2D(uRefractionMap, uvG).g,
+                texture2D(uRefractionMap, uvB).b
               );
-              c += 1.0 / length(vec2(
-                p.x / (sin(i.x + timeStep) / inten),
-                p.y / (cos(i.y + timeStep) / inten)
-              ));
+
+              // Animated solar caustics on shallow & mid-depth seabed
+              vec2 cUV = vWorldPos.xz * 0.34 + N.xz * 0.35;
+              float caust = causticLayer(cUV, uTime * 1.05) * 0.65 + causticLayer(cUV * 1.38 + vec2(1.7, -2.1), -uTime * 0.84) * 0.45;
+              float caustMask = smoothstep(0.03, 0.25, vDepth) * exp(-vDepth * 0.36);
+              refractedScene += uSunColor * vec3(0.86, 1.06, 1.14) * caust * caustMask * 0.72;
+
+              // 2. Beer-Lambert Exponential Depth Absorption (Turquoise Shallows -> Deep Pelagic Cobalt)
+              float clarityInv = 1.0 / clamp(uWaterClarity, 0.28, 1.85);
+              vec3 sigma = vec3(0.54, 0.16, 0.09) * clarityInv;
+              vec3 transmittance = exp(-sigma * max(0.0, vDepth));
+
+              vec3 shallowScatter = vec3(0.06, 0.48, 0.56);
+              vec3 deepScatter = vec3(0.015, 0.11, 0.24);
+              vec3 volumeColor = mix(shallowScatter, deepScatter, smoothstep(0.35, 3.8, vDepth));
+
+              // Subsurface forward wave-crest sun translucency (emerald glow through thin wave peaks)
+              float crestBacklit = pow(clamp(dot(V, -L + N * 0.45), 0.0, 1.0), 3.0) * smoothstep(0.25, 1.15, vCrestFactor);
+              volumeColor += vec3(0.06, 0.42, 0.38) * uSunColor * crestBacklit * 0.65;
+
+              vec3 underwaterCol = refractedScene * transmittance + volumeColor * (1.0 - transmittance);
+
+              // 3. Schlick Fresnel Sky Reflection & Crisp Solar Specular Glints
+              float NdotV = max(dot(N, V), 0.0);
+              float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 5.0);
+
+              vec3 R = reflect(-V, N);
+              float skyUp = clamp(R.y, 0.0, 1.0);
+              vec3 reflSky = mix(vec3(0.62, 0.82, 0.95), vec3(0.14, 0.38, 0.74), pow(skyUp, 0.55));
+              float sunReflCos = max(dot(R, L), 0.0);
+              reflSky += uSunColor * (pow(sunReflCos, 16.0) * 0.35 + pow(sunReflCos, 280.0) * 4.8);
+
+              vec3 waterCol = mix(underwaterCol, reflSky, clamp(fresnel * 0.92, 0.02, 0.94));
+
+              // 4. Multi-Tiered Coastal Surf Foam, Swash Lace & Boat Hull Wakes
+              float foamCell1 = fbm2D(vBaseXZ * 3.8 + vec2(uTime * 0.18, -uTime * 0.34));
+              float foamCell2 = fbm2D(vBaseXZ * 9.5 - vec2(uTime * 0.24, uTime * 0.41));
+              float foamWeb = smoothstep(0.42, 0.78, foamCell1 * 0.65 + foamCell2 * 0.35);
+
+              // Shoreline swash leading edge & receding bubble lace
+              float swashEdge = (1.0 - smoothstep(0.005, 0.14, vDepth)) * smoothstep(0.001, 0.025, vDepth);
+              float swashTrail = (1.0 - smoothstep(0.06, 0.46, vDepth)) * smoothstep(0.32, 0.72, foamCell1) * (0.45 + 0.55 * max(0.0, -vSwashVel));
+              float shoreFoam = clamp(swashEdge * (0.65 + 0.45 * foamCell2) + swashTrail * 0.78, 0.0, 1.0);
+
+              // Breaking offshore swell crests
+              float crestFoam = smoothstep(0.62, 1.18, vCrestFactor) * foamWeb * smoothstep(0.18, 0.65, vDepth);
+
+              // Vessel waterline displacement foam rings for all 5 boats
+              float hullFoam = 0.0;
+              for (int b = 0; b < 5; b++) {
+                vec2 rel = (vWorldPos.xz - uBoats[b].xy) / max(uBoats[b].zw, vec2(0.1));
+                float ellipDist = length(rel);
+                float ring = exp(-pow((ellipDist - 1.02) / 0.24, 2.0));
+                hullFoam = max(hullFoam, ring * (0.45 + 0.55 * foamCell2));
+              }
+
+              float totalFoam = clamp(shoreFoam + crestFoam * 0.85 + hullFoam * 0.72, 0.0, 1.0);
+              vec3 foamLit = vec3(0.95, 0.97, 0.99) * (0.55 + 0.45 * max(dot(N, L), 0.2)) * mix(vec3(1.0), uSunColor, 0.35);
+              waterCol = mix(waterCol, foamLit, totalFoam);
+
+              // Smooth shoreline alpha feathering so swash edge blends cleanly over wet sand
+              float shoreAlpha = smoothstep(0.001, 0.036, vDepth);
+              float finalAlpha = clamp(mix(shoreAlpha, 1.0, totalFoam * 0.75), 0.0, 0.985);
+
+              gl_FragColor = vec4(waterCol, finalAlpha);
             }
-            c /= 3.0;
-            c = 1.17 - pow(c, 1.4);
-            return pow(abs(c), 7.5);
-          }
+          `
+        });
 
-          float capillaryHeight(vec2 p, float t) {
-            float h = 0.0;
-            h += sin(dot(p, vec2(4.4, -9.8)) - t * 3.8) * 0.0032;
-            h += sin(dot(p, vec2(-7.1, -8.3)) - t * 4.4) * 0.0024;
-            h += (valueNoise2D(p * 3.8 + vec2(0.0, t * 1.4)) - 0.5) * 0.0052;
-            h += (valueNoise2D(p * 11.5 - vec2(t * 0.9, t * 2.1)) - 0.5) * 0.0024;
+        const waterTopMesh = new THREE.Mesh(waterGeo, waterTopMat);
+        waterTopMesh.renderOrder = 10;
+        scene.add(waterTopMesh);
 
-            for (int i = 0; i < 3; i++) {
-              vec2 rel = (p - uBoats[i].xy) / vec2(uBoats[i].w * 1.35, uBoats[i].z * 1.15);
-              float dist = length(rel);
-              float ringEnv = exp(-max(0.0, dist - 0.85) * 1.45) * smoothstep(0.75, 1.05, dist);
-              h += sin(dist * 18.0 - t * 4.6 + float(i) * 1.9) * 0.0038 * ringEnv;
-            }
-            return h;
-          }
+        // B. Volumetric Cross-Section Water Side-Walls (4 Border Curtains)
+        const waterWallsGroup = new THREE.Group();
+        waterWallsGroup.renderOrder = 11;
 
-          void main() {
-            if (vDepth <= 0.0006) discard;
+        const wPositions = [];
+        const wNormals = [];
+        const wUVs = [];
+        const wIndices = [];
 
-            float eps = 0.035;
-            vec2 xzC = vBaseXZ;
-            float capC = capillaryHeight(vWorldPos.xz, uTime);
-            float capX = capillaryHeight(vWorldPos.xz + vec2(eps, 0.0), uTime);
-            float capZ = capillaryHeight(vWorldPos.xz + vec2(0.0, eps), uTime);
-
-            float hC = evaluateOceanWave(xzC, vSandY, uTime, uWaveIntensity).waterY + capC;
-            float hX = evaluateOceanWave(xzC + vec2(eps, 0.0), getSandElevation(xzC + vec2(eps, 0.0)), uTime, uWaveIntensity).waterY + capX;
-            float hZ = evaluateOceanWave(xzC + vec2(0.0, eps), getSandElevation(xzC + vec2(0.0, eps)), uTime, uWaveIntensity).waterY + capZ;
-
-            vec3 N = normalize(vec3(hC - hX, eps, hC - hZ));
-            vec3 V = normalize(cameraPosition - vWorldPos);
-            vec3 L = normalize(uSunDir);
-
-            // Depth-attenuated capillary refraction so shallow seabed sand stays razor-sharp & stationary
-            vec2 screenUV = gl_FragCoord.xy / uResolution;
-            vec2 capNormalXZ = normalize(vec3(capC - capX, eps, capC - capZ)).xz;
-            vec2 refrDir = mix(capNormalXZ, N.xz, 0.28);
-            float refractStrength = smoothstep(0.12, 1.6, vDepth) * 0.018;
-            vec2 refractUV = clamp(screenUV + refrDir * refractStrength, vec2(0.002), vec2(0.998));
-            vec3 refractedSeabed = texture2D(uRefractionMap, refractUV).rgb;
-
-            // Dual-layer animated underwater solar caustics projected onto the submerged seabed
-            vec3 refractedSun = refract(-L, vec3(0.0, 1.0, 0.0), 0.75);
-            vec2 causticUV = vWorldPos.xz * 0.34 + refractedSun.xz * vDepth * 0.72;
-            float c1 = causticPattern(causticUV, uTime * 1.05);
-            float c2 = causticPattern(causticUV * 1.38 + vec2(1.7, -2.3), -uTime * 0.82);
-            float causticFade = smoothstep(0.01, 0.14, vDepth) * exp(-vDepth * 0.28);
-            refractedSeabed += uSunColor * vec3(0.86, 1.08, 1.16) * (c1 * 0.65 + c2 * 0.45) * causticFade * 0.85;
-
-            // Beer-Lambert spectral depth absorption (turquoise shallows -> pelagic cobalt basin)
-            float clarityInv = 1.0 / clamp(uWaterClarity, 0.3, 1.85);
-            vec3 sigmaAbsorption = vec3(0.92, 0.26, 0.17) * clarityInv;
-            vec3 transmittance = exp(-sigmaAbsorption * max(vDepth, 0.0) * 0.82);
-
-            vec3 shallowTurquoise = vec3(0.08, 0.58, 0.64);
-            vec3 deepPelagicCobalt = vec3(0.014, 0.14, 0.30);
-            vec3 scatterColor = mix(shallowTurquoise, deepPelagicCobalt, smoothstep(0.35, 3.8, vDepth));
-            vec3 underWaterColor = refractedSeabed * transmittance + scatterColor * (1.0 - transmittance) * (0.48 + 0.52 * max(L.y, 0.15));
-
-            // Translucent emerald-aqua wave-crest subsurface scattering
-            float sss = pow(clamp(dot(V, -L + N * 0.45), 0.0, 1.0), 3.0) * vCrestFactor * smoothstep(0.08, 0.65, vDepth);
-            underWaterColor += vec3(0.08, 0.60, 0.60) * uSunColor * sss * 0.65;
-
-            // Schlick Fresnel sky reflection
-            float NdotV = max(dot(N, V), 0.001);
-            float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 5.0);
-
-            vec3 R = reflect(-V, N);
-            float skyGrad = clamp(R.y * 0.5 + 0.5, 0.0, 1.0);
-            vec3 horizonSky = mix(vec3(0.68, 0.85, 0.96), vec3(0.96, 0.68, 0.44), 1.0 - smoothstep(0.1, 0.55, L.y));
-            vec3 zenithSky = mix(vec3(0.13, 0.38, 0.75), vec3(0.20, 0.30, 0.52), 1.0 - smoothstep(0.1, 0.55, L.y));
-            vec3 skyReflection = mix(horizonSky, zenithSky, pow(skyGrad, 0.58));
-
-            // Crisp solar glitter path
-            vec3 H = normalize(L + V);
-            float NdotH = max(dot(N, H), 0.0);
-            float specBroad = pow(NdotH, 130.0) * 0.55;
-            float specTight = pow(NdotH, 980.0) * 7.2;
-            vec3 sunSpecular = uSunColor * (specBroad + specTight) * smoothstep(0.0, 0.08, L.y);
-
-            vec3 waterCol = mix(underWaterColor, skyReflection, clamp(fresnel * 1.12, 0.0, 0.94)) + sunSpecular;
-
-            // Multi-layered cellular seafoam (shoreline swash + Voronoi lace + wave crests + headland splash + boat collars)
-            float cell1 = voronoiFoam(vWorldPos.xz * 4.4 + vec2(0.0, uTime * 0.34));
-            float cell2 = voronoiFoam(vWorldPos.xz * 10.5 - vec2(uTime * 0.2, 0.0));
-            float foamWeb = smoothstep(0.32, 0.64, cell1 * 0.65 + cell2 * 0.35);
-            float fbmFoam = fbm2D(vWorldPos.xz * 4.6 + vec2(0.0, uTime * 0.42));
-
-            float leadingEdgeLip = (1.0 - smoothstep(0.002, 0.06, vDepth)) * smoothstep(-0.35, 0.35, vSwashVel);
-            float swashFoam = leadingEdgeLip * smoothstep(0.22, 0.65, fbmFoam + 0.25);
-
-            float thinSheet = smoothstep(0.001, 0.016, vDepth) * (1.0 - smoothstep(0.035, 0.15, vDepth));
-            float recedingLace = thinSheet * foamWeb * smoothstep(0.35, 0.72, fbmFoam);
-
-            float crestFoam = smoothstep(0.66, 1.08, vCrestFactor + (fbmFoam - 0.5) * 0.42) * smoothstep(0.10, 0.45, vDepth);
-
-            // Headland rock splash foam around left promontory
-            float headlandProx = smoothstep(-10.5, -15.5, vWorldPos.x) * (1.0 - smoothstep(0.02, 0.32, vDepth));
-            float headlandFoam = headlandProx * smoothstep(0.25, 0.68, fbmFoam + 0.2) * 0.85;
-
-            float boatCollar = 0.0;
-            for (int i = 0; i < 3; i++) {
-              vec2 rel = (vWorldPos.xz - uBoats[i].xy) / vec2(uBoats[i].w * 1.12, uBoats[i].z * 1.06);
-              float dHull = length(rel);
-              float collarBand = smoothstep(0.82, 0.98, dHull) * (1.0 - smoothstep(0.98, 1.24, dHull));
-              boatCollar = max(boatCollar, collarBand * smoothstep(0.28, 0.72, fbmFoam + 0.18) * 0.75);
-            }
-
-            float totalFoam = clamp(max(max(swashFoam * 1.15, recedingLace * 0.85), max(max(crestFoam * 0.92, headlandFoam), boatCollar)), 0.0, 1.0);
-            vec3 foamAlbedo = mix(vec3(0.86, 0.93, 0.96), vec3(1.0, 0.99, 0.98), fbmFoam) * (0.55 + 0.55 * max(L.y, 0.2)) * uSunColor;
-            waterCol = mix(waterCol, foamAlbedo, totalFoam);
-
-            float edgeAlpha = smoothstep(0.0006, 0.009, vDepth);
-            gl_FragColor = vec4(waterCol, edgeAlpha);
-          }
-        `
-      });
-
-      const waterTopMesh = new THREE.Mesh(waterTopGeo, waterTopMaterial);
-      waterTopMesh.renderOrder = 2;
-      scene.add(waterTopMesh);
-
-      // Four Translucent Vertical Volumetric Water Cross-Section Side-Walls (+X, -X, +Z, -Z)
-      function buildVolumetricWaterWalls() {
-        const group = new THREE.Group();
-        const positions = [];
-        const normals = [];
-        const uvs = [];
-        const sandYs = [];
-        const indices = [];
-
-        function addWaterWall(segs, getPointAtT, normalVec) {
-          const baseIdx = positions.length / 3;
+        function addWaterBorderWall(segs, getPointAtT, normalVec) {
+          const baseIdx = wPositions.length / 3;
           for (let i = 0; i <= segs; i++) {
             const t = i / segs;
             const pt = getPointAtT(t);
-            const sY = getBeachHeight(pt.x, pt.z);
+            const sandY = getBeachHeight(pt.x, pt.z);
 
-            positions.push(pt.x, sY, pt.z);
-            normals.push(normalVec.x, normalVec.y, normalVec.z);
-            uvs.push(t, 1.0);
-            sandYs.push(sY);
+            // Top edge vertex (v = 1.0 -> displaced to wave surface in vertex shader)
+            wPositions.push(pt.x, sandY, pt.z);
+            wNormals.push(normalVec.x, normalVec.y, normalVec.z);
+            wUVs.push(t, 1.0);
 
-            positions.push(pt.x, sY, pt.z);
-            normals.push(normalVec.x, normalVec.y, normalVec.z);
-            uvs.push(t, 0.0);
-            sandYs.push(sY);
+            // Bottom edge vertex (v = 0.0 -> pinned to seabed sandY)
+            wPositions.push(pt.x, sandY, pt.z);
+            wNormals.push(normalVec.x, normalVec.y, normalVec.z);
+            wUVs.push(t, 0.0);
           }
 
           for (let i = 0; i < segs; i++) {
-            const i0 = baseIdx + i * 2;
-            const i1 = i0 + 1;
-            const i2 = i0 + 2;
-            const i3 = i0 + 3;
-            indices.push(i0, i1, i2);
-            indices.push(i2, i1, i3);
+            const a = baseIdx + i * 2;
+            const b = a + 1;
+            const c = a + 2;
+            const d = a + 3;
+            wIndices.push(a, b, c);
+            wIndices.push(b, d, c);
           }
         }
 
-        addWaterWall(SEG_X, (t) => ({ x: -HALF_W + t * DIORAMA_W, z: HALF_D }), new THREE.Vector3(0, 0, 1));
-        addWaterWall(SEG_X, (t) => ({ x: HALF_W - t * DIORAMA_W, z: -HALF_D }), new THREE.Vector3(0, 0, -1));
-        addWaterWall(SEG_Z, (t) => ({ x: HALF_W, z: HALF_D - t * DIORAMA_D }), new THREE.Vector3(1, 0, 0));
-        addWaterWall(SEG_Z, (t) => ({ x: -HALF_W, z: -HALF_D + t * DIORAMA_D }), new THREE.Vector3(-1, 0, 0));
+        addWaterBorderWall(SEG_X, (t) => ({ x: -HALF_W + t * DIORAMA_W, z: HALF_D }), new THREE.Vector3(0, 0, 1));
+        addWaterBorderWall(SEG_Z, (t) => ({ x: HALF_W, z: HALF_D - t * DIORAMA_D }), new THREE.Vector3(1, 0, 0));
+        addWaterBorderWall(SEG_X, (t) => ({ x: HALF_W - t * DIORAMA_W, z: -HALF_D }), new THREE.Vector3(0, 0, -1));
+        addWaterBorderWall(SEG_Z, (t) => ({ x: -HALF_W, z: -HALF_D + t * DIORAMA_D }), new THREE.Vector3(-1, 0, 0));
 
-        const geo = new THREE.BufferGeometry();
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-        geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        geo.setAttribute('aSandY', new THREE.Float32BufferAttribute(sandYs, 1));
-        geo.setIndex(indices);
+        const waterWallGeo = new THREE.BufferGeometry();
+        waterWallGeo.setAttribute('position', new THREE.Float32BufferAttribute(wPositions, 3));
+        waterWallGeo.setAttribute('normal', new THREE.Float32BufferAttribute(wNormals, 3));
+        waterWallGeo.setAttribute('uv', new THREE.Float32BufferAttribute(wUVs, 2));
+        waterWallGeo.setIndex(wIndices);
 
-        const wallMat = new THREE.ShaderMaterial({
+        const waterWallMat = new THREE.ShaderMaterial({
           transparent: true,
           depthWrite: false,
           side: THREE.DoubleSide,
@@ -1743,29 +1729,33 @@
             uResolution: sharedUniforms.uResolution
           },
           vertexShader: /* glsl */ `
-            attribute float aSandY;
             uniform float uTime;
             uniform float uWaveIntensity;
 
-            varying vec2 vWallUV;
             varying vec3 vWorldPos;
             varying vec3 vWorldNormal;
-            varying float vColThickness;
+            varying float vVerticalT;
+            varying float vColDepth;
 
             ${GLSL_SHARED_NOISE_AND_WAVES}
 
             void main() {
-              vWallUV = uv;
-              WaveState ws = evaluateOceanWave(position.xz, aSandY, uTime, uWaveIntensity);
-              float topY = max(ws.waterY, aSandY);
-              vColThickness = topY - aSandY;
+              vec2 baseXZ = position.xz;
+              float sandY = position.y;
+              WaveState ws = evaluateOceanWave(baseXZ, sandY, uTime, uWaveIntensity);
 
-              vec3 pos = position;
-              pos.y = mix(aSandY, topY, uv.y);
+              vVerticalT = uv.y;
+              vColDepth = ws.depth;
 
-              vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+              vec3 finalPos = vec3(baseXZ.x, sandY, baseXZ.y);
+              if (uv.y > 0.5) {
+                finalPos = ws.displacedPos;
+              }
+
+              vec4 worldPos = modelMatrix * vec4(finalPos, 1.0);
               vWorldPos = worldPos.xyz;
               vWorldNormal = normalize(mat3(modelMatrix) * normal);
+
               gl_Position = projectionMatrix * viewMatrix * worldPos;
             }
           `,
@@ -1777,148 +1767,141 @@
             uniform sampler2D uRefractionMap;
             uniform vec2 uResolution;
 
-            varying vec2 vWallUV;
             varying vec3 vWorldPos;
             varying vec3 vWorldNormal;
-            varying float vColThickness;
+            varying float vVerticalT;
+            varying float vColDepth;
 
             ${GLSL_SHARED_NOISE_AND_WAVES}
 
             void main() {
-              if (vColThickness <= 0.0015) discard;
+              if (vColDepth <= 0.004) discard;
 
-              vec2 screenUV = gl_FragCoord.xy / uResolution;
-              vec2 wobble = vec2(
-                sin(vWorldPos.y * 10.0 + uTime * 2.0),
-                cos((vWorldPos.x + vWorldPos.z) * 8.0 - uTime * 1.6)
-              ) * 0.003;
-              vec2 refrUV = clamp(screenUV + wobble, vec2(0.002), vec2(0.998));
-              vec3 bgRefract = texture2D(uRefractionMap, refrUV).rgb;
+              float depthFromTop = (1.0 - vVerticalT) * max(0.0, vColDepth);
+              vec2 screenUV = gl_FragCoord.xy / max(uResolution, vec2(1.0));
 
-              float depthFromSurface = (1.0 - vWallUV.y) * vColThickness;
-              float clarityInv = 1.0 / clamp(uWaterClarity, 0.3, 1.85);
+              float waveRefr = sin(vWorldPos.x * 1.6 + vWorldPos.z * 1.6 + uTime * 2.1) * 0.006;
+              vec2 uvRefr = clamp(screenUV + vec2(waveRefr, waveRefr * 0.5), vec2(0.002), vec2(0.998));
+              vec3 bgRefract = texture2D(uRefractionMap, uvRefr).rgb;
 
-              vec3 transmittance = exp(-vec3(0.88, 0.25, 0.16) * clarityInv * (0.20 + depthFromSurface * 0.72));
-              vec3 aquaTop = vec3(0.14, 0.72, 0.78);
-              vec3 tealDeep = vec3(0.015, 0.18, 0.35);
-              vec3 volumeTint = mix(aquaTop, tealDeep, smoothstep(0.0, 4.2, depthFromSurface));
+              float clarityInv = 1.0 / clamp(uWaterClarity, 0.28, 1.85);
+              vec3 absorb = exp(-vec3(0.45, 0.14, 0.08) * (depthFromTop * 0.9 + 0.45) * clarityInv);
 
-              // Volumetric underwater caustic light shafts descending from surface waves
-              float coordAlong = vWorldPos.x + vWorldPos.z;
-              float shaft1 = pow(0.5 + 0.5 * sin(coordAlong * 2.4 + depthFromSurface * 0.45 + uTime * 1.4), 5.0);
-              float shaft2 = pow(0.5 + 0.5 * cos(coordAlong * 3.8 - depthFromSurface * 0.35 - uTime * 1.1), 6.0);
-              float shaftFade = exp(-depthFromSurface * 0.42) * smoothstep(0.0, 0.08, uSunDir.y);
-              vec3 lightShafts = uSunColor * vec3(0.55, 0.92, 0.98) * (shaft1 * 0.55 + shaft2 * 0.45) * shaftFade * 0.32;
+              vec3 topAquamarine = vec3(0.12, 0.62, 0.72);
+              vec3 midCerulean = vec3(0.04, 0.34, 0.52);
+              vec3 deepAbyss = vec3(0.015, 0.12, 0.26);
 
-              vec3 col = bgRefract * transmittance + volumeTint * (1.0 - transmittance * 0.68) * (0.55 + 0.45 * max(uSunDir.y, 0.2)) + lightShafts;
+              vec3 volTint = mix(topAquamarine, midCerulean, smoothstep(0.0, 1.8, depthFromTop));
+              volTint = mix(volTint, deepAbyss, smoothstep(1.6, 5.2, depthFromTop));
 
-              vec3 V = normalize(cameraPosition - vWorldPos);
-              float fresnel = 0.04 + 0.42 * pow(1.0 - abs(dot(normalize(vWorldNormal), V)), 4.0);
-              col += vec3(0.45, 0.78, 0.92) * fresnel * 0.42;
+              // Volumetric underwater sun rays streaming down from the wave surface
+              float rayPattern = 0.5 + 0.5 * sin((vWorldPos.x + vWorldPos.z) * 2.4 + uTime * 1.3 + depthFromTop * 0.8);
+              float sunShafts = pow(rayPattern, 3.0) * exp(-depthFromTop * 0.42) * 0.24;
+              volTint += uSunColor * vec3(0.45, 0.85, 0.95) * sunShafts;
 
-              // Glowing 2.5cm optical surface meniscus line
-              float meniscus = smoothstep(0.986, 0.999, vWallUV.y) * smoothstep(0.004, 0.025, vColThickness);
-              col += (vec3(0.75, 0.96, 1.0) + uSunColor * 0.55) * meniscus * 0.88;
+              vec3 col = mix(bgRefract * absorb, volTint, 0.58);
 
-              gl_FragColor = vec4(col, 0.92);
+              // Crisp illuminated air-water meniscus line along the top cross-section edge
+              float meniscus = smoothstep(0.968, 1.0, vVerticalT);
+              col = mix(col, vec3(0.86, 0.96, 1.0) * (0.75 + 0.25 * uSunColor), meniscus * 0.85);
+
+              float alpha = clamp(0.76 + (1.0 - vVerticalT) * 0.16, 0.72, 0.94);
+              gl_FragColor = vec4(col, alpha);
             }
           `
         });
 
-        const mesh = new THREE.Mesh(geo, wallMat);
-        mesh.renderOrder = 3;
-        group.add(mesh);
-        return group;
+        const waterWallsMesh = new THREE.Mesh(waterWallGeo, waterWallMat);
+        waterWallsGroup.add(waterWallsMesh);
+        scene.add(waterWallsGroup);
+
+        return { waterTopMesh, waterWallsGroup };
       }
-
-      const waterWallsGroup = buildVolumetricWaterWalls();
-      scene.add(waterWallsGroup);
+      const { waterTopMesh, waterWallsGroup } = createOceanSurfaceAndWalls();
 
       // =========================================================================
-      // 8. THREE HIGH-DETAIL WOODEN BOATS + 5-POINT WAVE-COUPLED BUOYANCY
+      // 8. HANDCRAFTED WOODEN COASTAL FLEET & DYNAMIC CATENARY MOORING LINES
       // =========================================================================
-      const brassMat = new THREE.MeshStandardMaterial({
-        color: 0xd9a84e,
-        roughness: 0.24,
-        metalness: 0.88
-      });
-
-      const ropeMat = new THREE.MeshStandardMaterial({
-        color: 0xc2a878,
-        roughness: 0.86,
-        metalness: 0.0
-      });
-
-      function createLoftedHullGeometry(opts) {
+      function createBoatHullGeometry(
+        length,
+        beam,
+        depth,
+        bowSharpness = 1.65,
+        sternWidthRatio = 0.58,
+        options = {}
+      ) {
         const {
-          length,
-          beam,
-          depth,
-          sheerBow = 0.22,
-          sheerStern = 0.10,
-          transomWidthRatio = 0.42,
-          deadrise = 0.28,
-          lapstrakeSteps = 0,
-          threeTone = false,
-          topColor = new THREE.Color(0x162b49),
-          stripeColor = new THREE.Color(0xf8fafc),
-          bottomColor = new THREE.Color(0x8c2d23)
-        } = opts;
+          topsideHex = 0xffffff,
+          stripeHex = 0xf4efe6,
+          bottomHex = 0x5c231c,
+          lapstrake = true,
+          strakeCount = 7
+        } = options;
 
-        const uSegs = 44;
-        const vSegs = 26;
+        const uSegs = 36; // Stern (+length/2) to Bow (-length/2)
+        const vSegs = 24; // Port gunwale to Keel to Starboard gunwale
         const positions = [];
         const uvs = [];
         const colors = [];
         const indices = [];
 
-        const halfL = length * 0.5;
-        const halfB = beam * 0.5;
+        const topCol = new THREE.Color(topsideHex);
+        const stripeCol = new THREE.Color(stripeHex);
+        const botCol = new THREE.Color(bottomHex);
+
+        const portSheerPts = [];
+        const stbdSheerPts = [];
+        const stemPts = [];
+
+        const getHullPoint = (u, s) => {
+          const z = (0.5 - u) * length;
+          const bowTaper = Math.pow(Math.max(0.0, 1.0 - Math.pow(u, bowSharpness)), 0.62);
+          const sternTaper = sternWidthRatio + (1.0 - sternWidthRatio) * smoothstepJS(0.0, 0.28, u);
+          const halfW = (beam * 0.5) * bowTaper * sternTaper;
+
+          const sheerY = depth * (0.52 + 0.26 * Math.pow(u, 2.4) + 0.08 * Math.pow(1.0 - u, 2.0));
+          const keelY = -depth * (0.48 - 0.14 * Math.pow(u, 3.0));
+
+          const absS = Math.abs(s);
+          // Subtle clinker / lapstrake plank ridges along the topsides
+          let strakeOffset = 0.0;
+          if (lapstrake && absS > 0.22) {
+            const plankT = ((absS - 0.22) / 0.78) * strakeCount;
+            const saw = plankT - Math.floor(plankT);
+            strakeOffset = (0.5 - saw) * 0.0085 * Math.sin(u * Math.PI);
+          }
+
+          const x = Math.sign(s) * (halfW * Math.pow(absS, 0.72) + strakeOffset);
+          const y = keelY + (sheerY - keelY) * Math.pow(absS, 1.55);
+          return { x, y, z, sheerY, keelY };
+        };
 
         for (let iu = 0; iu <= uSegs; iu++) {
-          const u = iu / uSegs;
-          const z = -halfL + u * length;
-
-          const bowTaper = Math.pow(Math.sin(Math.min(1.0, u * 1.48) * (Math.PI * 0.5)), 0.78);
-          const sternTaper = 1.0 - (1.0 - transomWidthRatio) * Math.pow(Math.max(0.0, (u - 0.52) / 0.48), 1.85);
-          const localHalfBeam = halfB * bowTaper * sternTaper;
-
-          const sheerY = 0.24
-            + sheerBow * Math.pow(Math.max(0.0, 1.0 - u * 2.1), 2.1)
-            + sheerStern * Math.pow(Math.max(0.0, (u - 0.55) / 0.45), 2.0);
-
-          const forefootLift = Math.pow(Math.max(0.0, 1.0 - u * 4.2), 2.4) * (depth * 0.72);
-          const sternLift = Math.pow(Math.max(0.0, (u - 0.78) / 0.22), 2.0) * (depth * 0.35);
-          const keelY = -depth + forefootLift + sternLift;
+          const u = iu / uSegs; // 0 = stern (+Z), 1 = bow (-Z)
 
           for (let iv = 0; iv <= vSegs; iv++) {
-            const s = (iv / vSegs) * 2.0 - 1.0;
-            const absS = Math.abs(s);
+            const v = iv / vSegs; // 0 = port gunwale, 0.5 = keel, 1 = starboard gunwale
+            const s = (v - 0.5) * 2.0;
+            const pt = getHullPoint(u, s);
 
-            let xNorm = Math.pow(absS, 0.62);
-            let yNorm = Math.pow(absS, 1.65 + deadrise);
+            positions.push(pt.x, pt.y, pt.z);
+            uvs.push(u * 2.4, v);
 
-            if (lapstrakeSteps > 0) {
-              const strakePhase = absS * lapstrakeSteps;
-              const stepFrac = strakePhase - Math.floor(strakePhase);
-              xNorm += stepFrac * 0.032 * smoothstepJS(0.12, 0.95, absS);
+            // Antifouling bottom paint, crisp waterline boot-stripe & topside finish
+            const waterlineY = -depth * 0.06;
+            const stripeHalfH = depth * 0.042;
+            const c = topCol.clone();
+            if (pt.y < waterlineY - stripeHalfH) {
+              c.copy(botCol);
+            } else if (pt.y <= waterlineY + stripeHalfH) {
+              c.copy(stripeCol);
             }
+            colors.push(c.r, c.g, c.b);
 
-            const x = Math.sign(s) * localHalfBeam * xNorm;
-            const y = THREE.MathUtils.lerp(keelY, sheerY, yNorm);
-
-            positions.push(x, y, z);
-            uvs.push(u * 4.0, absS * 2.0);
-
-            if (threeTone) {
-              let c;
-              if (y > 0.045) c = topColor;
-              else if (y > -0.015) c = stripeColor;
-              else c = bottomColor;
-              colors.push(c.r, c.g, c.b);
-            } else {
-              const c = topColor.clone().lerp(bottomColor, 1.0 - smoothstepJS(-0.08, 0.14, y));
-              colors.push(c.r, c.g, c.b);
+            if (iv === 0) portSheerPts.push(new THREE.Vector3(pt.x, pt.y, pt.z));
+            if (iv === vSegs) stbdSheerPts.push(new THREE.Vector3(pt.x, pt.y, pt.z));
+            if (iu === uSegs && iv >= vSegs / 2) {
+              stemPts.push(new THREE.Vector3(0, pt.y, pt.z));
             }
           }
         }
@@ -1930,23 +1913,32 @@
             const b = (iu + 1) * stride + iv;
             const c = (iu + 1) * stride + (iv + 1);
             const d = iu * stride + (iv + 1);
-            indices.push(a, d, b);
-            indices.push(b, d, c);
+            indices.push(a, b, d);
+            indices.push(b, c, d);
           }
         }
 
-        const sternStart = uSegs * stride;
+        // Seal the stern opening (iu = 0) with a solid transom bulkhead
+        const sternTop = getHullPoint(0, 0).sheerY;
+        const sternBot = getHullPoint(0, 0).keelY;
         const transomCenterIdx = positions.length / 3;
-        const sternSheerY = 0.24 + sheerStern;
-        const sternKeelY = -depth * 0.65;
-        positions.push(0, (sternSheerY + sternKeelY) * 0.5, halfL);
+        positions.push(0, sternBot + (sternTop - sternBot) * 0.55, length * 0.5);
         uvs.push(0.5, 0.5);
-        colors.push(topColor.r, topColor.g, topColor.b);
+        colors.push(topCol.r, topCol.g, topCol.b);
 
+        for (let iv = 0; iv <= vSegs; iv++) {
+          const v = iv / vSegs;
+          const s = (v - 0.5) * 2.0;
+          const pt = getHullPoint(0, s);
+          positions.push(pt.x, pt.y, pt.z);
+          uvs.push(0.5 + s * 0.5, (pt.y - sternBot) / Math.max(0.01, sternTop - sternBot));
+          const c = pt.y < -depth * 0.06 ? botCol : topCol;
+          colors.push(c.r, c.g, c.b);
+        }
+
+        const transomStart = transomCenterIdx + 1;
         for (let iv = 0; iv < vSegs; iv++) {
-          const i0 = sternStart + iv;
-          const i1 = sternStart + iv + 1;
-          indices.push(i0, i1, transomCenterIdx);
+          indices.push(transomCenterIdx, transomStart + iv + 1, transomStart + iv);
         }
 
         const geo = new THREE.BufferGeometry();
@@ -1955,350 +1947,584 @@
         geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geo.setIndex(indices);
         geo.computeVertexNormals();
+        geo.userData = { portSheerPts, stbdSheerPts, stemPts, getHullPoint };
         return geo;
       }
 
-      function createGunwaleRails(length, beam, sheerBow, sheerStern, transomWidthRatio, railMat) {
-        const group = new THREE.Group();
-        const halfL = length * 0.5;
-        const halfB = beam * 0.5;
-
-        [-1, 1].forEach((side) => {
-          const pts = [];
-          for (let i = 0; i <= 24; i++) {
-            const u = i / 24;
-            const z = -halfL + u * length;
-            const bowTaper = Math.pow(Math.sin(Math.min(1.0, u * 1.48) * (Math.PI * 0.5)), 0.78);
-            const sternTaper = 1.0 - (1.0 - transomWidthRatio) * Math.pow(Math.max(0.0, (u - 0.52) / 0.48), 1.85);
-            const x = side * halfB * bowTaper * sternTaper;
-            const y = 0.245
-              + sheerBow * Math.pow(Math.max(0.0, 1.0 - u * 2.1), 2.1)
-              + sheerStern * Math.pow(Math.max(0.0, (u - 0.55) / 0.45), 2.0);
-            pts.push(new THREE.Vector3(x, y, z));
-          }
-          const curve = new THREE.CatmullRomCurve3(pts);
-          const railMesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 36, 0.032, 8, false), railMat);
-          railMesh.castShadow = true;
-          group.add(railMesh);
-        });
-
-        return group;
+      function addHullGunwalesAndStem(group, hullGeo, trimMat, railRadius = 0.026) {
+        const { portSheerPts, stbdSheerPts, stemPts } = hullGeo.userData;
+        if (portSheerPts && portSheerPts.length > 2) {
+          const portCurve = new THREE.CatmullRomCurve3(portSheerPts);
+          const portRail = new THREE.Mesh(
+            new THREE.TubeGeometry(portCurve, 32, railRadius, 8, false),
+            trimMat
+          );
+          portRail.castShadow = true;
+          group.add(portRail);
+        }
+        if (stbdSheerPts && stbdSheerPts.length > 2) {
+          const stbdCurve = new THREE.CatmullRomCurve3(stbdSheerPts);
+          const stbdRail = new THREE.Mesh(
+            new THREE.TubeGeometry(stbdCurve, 32, railRadius, 8, false),
+            trimMat
+          );
+          stbdRail.castShadow = true;
+          group.add(stbdRail);
+        }
+        if (stemPts && stemPts.length > 2) {
+          const stemCurve = new THREE.CatmullRomCurve3(stemPts);
+          const stemPost = new THREE.Mesh(
+            new THREE.TubeGeometry(stemCurve, 12, railRadius * 1.15, 8, false),
+            trimMat
+          );
+          stemPost.castShadow = true;
+          group.add(stemPost);
+        }
       }
 
-      // BOAT 1: CLASSIC COASTAL SLOOP (~4.8m at X=5.8, Z=6.2)
-      function buildCoastalSloop() {
-        const boat = new THREE.Group();
+      function addInteriorRibsAndDuckboards(group, hullGeo, length, depth, ribMat, boardMat, ribCount = 7) {
+        const getHullPoint = hullGeo.userData.getHullPoint;
+        if (!getHullPoint) return;
 
-        const hullGeo = createLoftedHullGeometry({
-          length: 4.80,
-          beam: 1.48,
-          depth: 0.45,
-          sheerBow: 0.24,
-          sheerStern: 0.11,
-          transomWidthRatio: 0.44,
-          deadrise: 0.34,
-          threeTone: true,
-          topColor: new THREE.Color(0x132744),
-          stripeColor: new THREE.Color(0xf8fafc),
-          bottomColor: new THREE.Color(0x8e2e22)
-        });
-        const hullMesh = new THREE.Mesh(
-          hullGeo,
-          new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.24, metalness: 0.08, side: THREE.DoubleSide })
-        );
-        hullMesh.castShadow = true;
-        hullMesh.receiveShadow = true;
-        boat.add(hullMesh);
-
-        // Submerged fin keel, ballast bulb & spade rudder visible through clear water
-        const keelShape = new THREE.Shape();
-        keelShape.moveTo(-0.56, 0.0);
-        keelShape.lineTo(0.46, 0.0);
-        keelShape.lineTo(0.28, -0.60);
-        keelShape.lineTo(-0.32, -0.60);
-        keelShape.closePath();
-
-        const keelGeo = new THREE.ExtrudeGeometry(keelShape, {
-          depth: 0.08,
-          bevelEnabled: true,
-          bevelThickness: 0.025,
-          bevelSize: 0.02,
-          bevelSegments: 3
-        });
-        keelGeo.rotateY(Math.PI / 2);
-        keelGeo.translate(-0.04, -0.39, 0.15);
-        const keelMat = new THREE.MeshStandardMaterial({ color: 0x3b4856, roughness: 0.38, metalness: 0.65 });
-        boat.add(new THREE.Mesh(keelGeo, keelMat));
-
-        const bulbGeo = new THREE.SphereGeometry(0.115, 18, 12);
-        bulbGeo.scale(0.85, 0.72, 4.5);
-        const bulbMesh = new THREE.Mesh(bulbGeo, keelMat);
-        bulbMesh.position.set(0, -0.99, 0.15);
-        boat.add(bulbMesh);
-
-        const rudderMesh = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.58, 0.35), keelMat);
-        rudderMesh.position.set(0, -0.47, 2.08);
-        rudderMesh.rotation.x = 0.12;
-        boat.add(rudderMesh);
-
-        // Planked teak deck
-        const deckGeo = new THREE.PlaneGeometry(1.42, 4.70, 24, 36);
-        deckGeo.rotateX(-Math.PI / 2);
-        const dPos = deckGeo.attributes.position;
-        for (let i = 0; i < dPos.count; i++) {
-          const z = dPos.getZ(i);
-          const u = THREE.MathUtils.clamp((z + 2.40) / 4.80, 0.0, 1.0);
-          const bowTaper = Math.pow(Math.sin(Math.min(1.0, u * 1.48) * (Math.PI * 0.5)), 0.78);
-          const sternTaper = 1.0 - 0.56 * Math.pow(Math.max(0.0, (u - 0.52) / 0.48), 1.85);
-          const halfW = 0.71 * bowTaper * sternTaper;
-          const xNorm = dPos.getX(i) / 0.71;
-          const x = xNorm * halfW;
-          const camber = (1.0 - xNorm * xNorm) * 0.045;
-          const sheerY = 0.23
-            + 0.24 * Math.pow(Math.max(0.0, 1.0 - u * 2.1), 2.1)
-            + 0.11 * Math.pow(Math.max(0.0, (u - 0.55) / 0.45), 2.0);
-          dPos.setXYZ(i, x, sheerY + camber, z);
+        // Curved interior oak hull ribs (frames)
+        for (let r = 1; r <= ribCount; r++) {
+          const u = r / (ribCount + 1);
+          const ribPts = [];
+          for (let k = 0; k <= 14; k++) {
+            const s = -0.94 + (k / 14) * 1.88;
+            const pt = getHullPoint(u, s);
+            ribPts.push(new THREE.Vector3(pt.x * 0.96, pt.y + 0.015, pt.z));
+          }
+          const ribCurve = new THREE.CatmullRomCurve3(ribPts);
+          const ribMesh = new THREE.Mesh(
+            new THREE.TubeGeometry(ribCurve, 16, 0.014, 6, false),
+            ribMat
+          );
+          ribMesh.receiveShadow = true;
+          group.add(ribMesh);
         }
-        deckGeo.computeVertexNormals();
 
-        const teakMat = new THREE.MeshStandardMaterial({
-          map: teakDeckTex,
-          bumpMap: teakDeckTex,
-          bumpScale: 0.008,
-          roughness: 0.36,
+        // Tapered slatted teak floorboards (duckboards) nested cleanly inside the bilge
+        const slatOffsets = [-0.14, -0.05, 0.05, 0.14];
+        slatOffsets.forEach((ox) => {
+          const innerSpan = Math.max(0.15, 0.92 - Math.abs(ox) * 2.4);
+          const slatGeo = new THREE.BoxGeometry(0.055, 0.022, length * 0.62 * innerSpan);
+          const slat = new THREE.Mesh(slatGeo, boardMat);
+          slat.position.set(ox, -depth * 0.16, length * 0.04);
+          slat.receiveShadow = true;
+          group.add(slat);
+        });
+      }
+
+      function createSculptedOar(length, woodMat, leatherMat) {
+        const oarGroup = new THREE.Group();
+        const shaftLen = length * 0.68;
+        const bladeLen = length * 0.34;
+
+        // Cylindrical ash shaft
+        const shaft = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.014, 0.017, shaftLen, 10),
+          woodMat
+        );
+        shaft.rotation.x = Math.PI / 2;
+        shaft.position.z = -length * 0.14;
+        shaft.castShadow = true;
+        oarGroup.add(shaft);
+
+        // Turned grip pommel
+        const grip = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.018, 0.013, 0.12, 10),
+          woodMat
+        );
+        grip.rotation.x = Math.PI / 2;
+        grip.position.z = -length * 0.48;
+        oarGroup.add(grip);
+
+        // Leather oarlock collar
+        const collar = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.021, 0.021, 0.14, 10),
+          leatherMat
+        );
+        collar.rotation.x = Math.PI / 2;
+        collar.position.z = -length * 0.12;
+        oarGroup.add(collar);
+
+        // Tapered flat paddle blade
+        const blade = new THREE.Mesh(
+          new THREE.BoxGeometry(0.088, 0.012, bladeLen),
+          woodMat
+        );
+        blade.position.z = length * 0.33;
+        blade.castShadow = true;
+        oarGroup.add(blade);
+
+        return oarGroup;
+      }
+
+      function createCoiledRope(outerR, tubeR, mat) {
+        const pts = [];
+        const steps = 44;
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const ang = t * Math.PI * 6.5;
+          const r = outerR * (0.28 + 0.72 * t);
+          pts.push(new THREE.Vector3(Math.cos(ang) * r, tubeR * (1.0 + 0.35 * (1.0 - t)), Math.sin(ang) * r));
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const mesh = new THREE.Mesh(
+          new THREE.TubeGeometry(curve, 44, tubeR, 7, false),
+          mat
+        );
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        return mesh;
+      }
+
+      function createDetailedFishCrate(w, h, d, woodMat, withCatch = true) {
+        const crate = new THREE.Group();
+        const postGeo = new THREE.BoxGeometry(0.026, h, 0.026);
+        [
+          [-w * 0.46, -d * 0.46],
+          [ w * 0.46, -d * 0.46],
+          [-w * 0.46,  d * 0.46],
+          [ w * 0.46,  d * 0.46]
+        ].forEach(([px, pz]) => {
+          const post = new THREE.Mesh(postGeo, woodMat);
+          post.position.set(px, h * 0.5, pz);
+          post.castShadow = true;
+          crate.add(post);
+        });
+
+        const bottom = new THREE.Mesh(new THREE.BoxGeometry(w * 0.96, 0.02, d * 0.96), woodMat);
+        bottom.position.y = 0.015;
+        crate.add(bottom);
+
+        for (let row = 0; row < 3; row++) {
+          const sy = 0.045 + row * (h * 0.30);
+          [-1, 1].forEach((side) => {
+            const sideSlat = new THREE.Mesh(new THREE.BoxGeometry(w, 0.036, 0.016), woodMat);
+            sideSlat.position.set(0, sy, side * d * 0.48);
+            sideSlat.castShadow = true;
+            crate.add(sideSlat);
+
+            const endSlat = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.036, d), woodMat);
+            endSlat.position.set(side * w * 0.48, sy, 0);
+            endSlat.castShadow = true;
+            crate.add(endSlat);
+          });
+        }
+
+        if (withCatch) {
+          const fishMat = new THREE.MeshStandardMaterial({
+            color: 0x9fb8c7,
+            roughness: 0.22,
+            metalness: 0.65
+          });
+          for (let f = 0; f < 4; f++) {
+            const fish = new THREE.Mesh(new THREE.SphereGeometry(0.026, 10, 8), fishMat);
+            fish.scale.set(0.65, 0.85, 3.6);
+            fish.position.set(
+              (f - 1.5) * 0.065,
+              h * 0.68 + (f % 2) * 0.015,
+              (f % 2 === 0 ? 1 : -1) * 0.02
+            );
+            fish.rotation.y = (f - 1.5) * 0.22;
+            crate.add(fish);
+          }
+        }
+        return crate;
+      }
+
+      function createBundledFishingNet(scale, netMat, floatColors) {
+        const netGroup = new THREE.Group();
+        const blobMat = new THREE.MeshStandardMaterial({
+          color: 0x2f5a4b,
+          roughness: 0.92,
+          metalness: 0.0
+        });
+        const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22 * scale, 2), blobMat);
+        core.scale.set(1.35, 0.56, 1.15);
+        core.position.y = 0.09 * scale;
+        core.castShadow = true;
+        netGroup.add(core);
+
+        const meshOverlay = new THREE.Mesh(new THREE.IcosahedronGeometry(0.232 * scale, 2), netMat);
+        meshOverlay.scale.set(1.36, 0.58, 1.16);
+        meshOverlay.position.y = 0.095 * scale;
+        netGroup.add(meshOverlay);
+
+        const floatAngles = [0.2, 1.4, 2.5, 3.8, 5.1];
+        floatAngles.forEach((ang, idx) => {
+          const fl = new THREE.Mesh(
+            new THREE.SphereGeometry(0.048 * scale, 12, 10),
+            new THREE.MeshStandardMaterial({
+              color: floatColors[idx % floatColors.length],
+              roughness: 0.20,
+              metalness: 0.06
+            })
+          );
+          fl.position.set(
+            Math.cos(ang) * 0.24 * scale,
+            0.13 * scale + (idx % 2) * 0.03 * scale,
+            Math.sin(ang) * 0.20 * scale
+          );
+          fl.castShadow = true;
+          netGroup.add(fl);
+        });
+        return netGroup;
+      }
+
+      function buildCoastalFleet() {
+        const hullMahoganyMat = new THREE.MeshStandardMaterial({
+          map: mahoganyTex,
+          vertexColors: true,
+          roughness: 0.38,
+          metalness: 0.06,
+          side: THREE.DoubleSide
+        });
+        const hullCreamMat = new THREE.MeshStandardMaterial({
+          map: oakTrimTex,
+          vertexColors: true,
+          roughness: 0.42,
+          metalness: 0.04,
+          side: THREE.DoubleSide
+        });
+        const hullTealMat = new THREE.MeshStandardMaterial({
+          map: oakTrimTex,
+          vertexColors: true,
+          roughness: 0.46,
+          metalness: 0.05,
+          side: THREE.DoubleSide
+        });
+        const hullCrimsonMat = new THREE.MeshStandardMaterial({
+          map: oakTrimTex,
+          vertexColors: true,
+          roughness: 0.42,
+          metalness: 0.06,
+          side: THREE.DoubleSide
+        });
+        const hullCedarMat = new THREE.MeshStandardMaterial({
+          map: oakTrimTex,
+          vertexColors: true,
+          roughness: 0.38,
+          metalness: 0.05,
+          side: THREE.DoubleSide
+        });
+        const superCreamMat = new THREE.MeshStandardMaterial({
+          color: 0xf3eee3,
+          roughness: 0.44,
           metalness: 0.04
         });
-        const deckMesh = new THREE.Mesh(deckGeo, teakMat);
-        deckMesh.castShadow = true;
-        deckMesh.receiveShadow = true;
-        boat.add(deckMesh);
+        const deckTeakMat = new THREE.MeshStandardMaterial({
+          map: teakDeckTex,
+          roughness: 0.60,
+          metalness: 0.04
+        });
+        const oakTrimMat = new THREE.MeshStandardMaterial({
+          map: oakTrimTex,
+          roughness: 0.46,
+          metalness: 0.06
+        });
+        const leatherMat = new THREE.MeshStandardMaterial({
+          color: 0x3b2314,
+          roughness: 0.72
+        });
+        const hempRopeMat = new THREE.MeshStandardMaterial({
+          color: 0xd2be9c,
+          roughness: 0.86
+        });
+        const riggingWireMat = new THREE.MeshStandardMaterial({
+          color: 0xcbd5e1,
+          roughness: 0.28,
+          metalness: 0.88
+        });
+        const ironMat = new THREE.MeshStandardMaterial({
+          color: 0x1e293b,
+          roughness: 0.42,
+          metalness: 0.78
+        });
+        const brassMat = new THREE.MeshStandardMaterial({
+          color: 0xd4af37,
+          roughness: 0.22,
+          metalness: 0.90
+        });
+        const sailMat = new THREE.MeshStandardMaterial({
+          map: sailClothTex,
+          roughness: 0.76,
+          metalness: 0.0,
+          side: THREE.DoubleSide
+        });
+        const netWireMat = new THREE.MeshStandardMaterial({
+          color: 0x3f7360,
+          roughness: 0.90,
+          wireframe: true
+        });
 
-        const mahoganyMat = new THREE.MeshStandardMaterial({ map: mahoganyTex, roughness: 0.22, metalness: 0.06 });
-        boat.add(createGunwaleRails(4.80, 1.48, 0.24, 0.11, 0.44, mahoganyMat));
+        // -----------------------------------------------------------------------
+        // 1. 4.8m Classic Wooden Coastal Sloop (X=5.8, Z=3.4)
+        // -----------------------------------------------------------------------
+        const sloopMesh = new THREE.Group();
+        const sloopHullGeo = createBoatHullGeometry(4.80, 1.48, 0.84, 1.65, 0.56, {
+          topsideHex: 0xffffff,
+          stripeHex: 0xf7f2e7,
+          bottomHex: 0x521d18,
+          lapstrake: true,
+          strakeCount: 8
+        });
+        const sloopHull = new THREE.Mesh(sloopHullGeo, hullMahoganyMat);
+        sloopHull.castShadow = true;
+        sloopHull.receiveShadow = true;
+        sloopMesh.add(sloopHull);
+        addHullGunwalesAndStem(sloopMesh, sloopHullGeo, oakTrimMat, 0.028);
 
-        // Mahogany cabin trunk with 4 glowing brass portholes
-        const cabinGeo = new THREE.BoxGeometry(0.86, 0.35, 1.56, 12, 4, 16);
-        const cPos = cabinGeo.attributes.position;
-        for (let i = 0; i < cPos.count; i++) {
-          const vx = cPos.getX(i);
-          const vy = cPos.getY(i);
-          const vz = cPos.getZ(i);
-          const zFrac = (vz + 0.78) / 1.56;
-          const widthScale = 0.74 + 0.26 * zFrac;
-          const roofArch = vy > 0 ? (1.0 - Math.pow(vx / 0.43, 2.0)) * 0.065 - (1.0 - zFrac) * 0.05 : 0.0;
-          cPos.setXYZ(i, vx * widthScale, vy + roofArch, vz);
-        }
-        cabinGeo.computeVertexNormals();
-        const cabinMesh = new THREE.Mesh(cabinGeo, mahoganyMat);
-        cabinMesh.position.set(0, 0.38, -0.35);
-        cabinMesh.castShadow = true;
-        cabinMesh.receiveShadow = true;
-        boat.add(cabinMesh);
+        // Submerged hydrodynamic fin keel with lead ballast bulb & rudder
+        const keelMesh = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.80, 1.08), ironMat);
+        keelMesh.position.set(0, -0.68, 0.14);
+        sloopMesh.add(keelMesh);
 
-        const portGlowMat = new THREE.MeshStandardMaterial({
+        const keelBulb = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), ironMat);
+        keelBulb.scale.set(0.85, 0.72, 5.2);
+        keelBulb.position.set(0, -1.06, 0.14);
+        sloopMesh.add(keelBulb);
+
+        const rudderMesh = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.64, 0.38), oakTrimMat);
+        rudderMesh.position.set(0, -0.52, 2.15);
+        sloopMesh.add(rudderMesh);
+
+        // Laid teak deck & recessed cockpit coaming
+        const sloopDeckGeo = createBoatHullGeometry(4.68, 1.40, 0.12, 1.65, 0.56, {
+          topsideHex: 0xffffff,
+          stripeHex: 0xffffff,
+          bottomHex: 0xffffff,
+          lapstrake: false
+        });
+        sloopDeckGeo.scale(1, 0.15, 1);
+        const sloopDeck = new THREE.Mesh(sloopDeckGeo, deckTeakMat);
+        sloopDeck.position.y = 0.41;
+        sloopDeck.receiveShadow = true;
+        sloopMesh.add(sloopDeck);
+
+        // Raised aft cockpit coaming, helmsman benches, binnacle & curved tiller
+        const cockpitCoaming = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.14, 1.38), oakTrimMat);
+        cockpitCoaming.position.set(0, 0.48, 1.25);
+        cockpitCoaming.castShadow = true;
+        sloopMesh.add(cockpitCoaming);
+
+        const cockpitWell = new THREE.Mesh(new THREE.BoxGeometry(0.80, 0.15, 1.26), deckTeakMat);
+        cockpitWell.position.set(0, 0.485, 1.25);
+        sloopMesh.add(cockpitWell);
+
+        [-0.32, 0.32].forEach((bx) => {
+          const cockpitBench = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 1.18), oakTrimMat);
+          cockpitBench.position.set(bx, 0.57, 1.25);
+          cockpitBench.castShadow = true;
+          sloopMesh.add(cockpitBench);
+        });
+
+        const binnacle = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.068, 0.24, 12), brassMat);
+        binnacle.position.set(0, 0.65, 1.18);
+        sloopMesh.add(binnacle);
+
+        const tillerArm = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.024, 0.88, 10), oakTrimMat);
+        tillerArm.rotation.x = Math.PI / 2 - 0.14;
+        tillerArm.position.set(0, 0.64, 1.72);
+        tillerArm.castShadow = true;
+        sloopMesh.add(tillerArm);
+
+        // Cabin trunk with companionway hatch, handrails & brass-rimmed glowing portholes
+        const cabinHouse = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.26, 1.42), superCreamMat);
+        cabinHouse.position.set(0, 0.52, -0.25);
+        cabinHouse.castShadow = true;
+        sloopMesh.add(cabinHouse);
+
+        const cabinRoof = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.045, 1.48), oakTrimMat);
+        cabinRoof.position.set(0, 0.66, -0.25);
+        cabinRoof.castShadow = true;
+        sloopMesh.add(cabinRoof);
+
+        const companionway = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.18, 0.26), oakTrimMat);
+        companionway.position.set(0, 0.58, 0.46);
+        sloopMesh.add(companionway);
+
+        const portholeGlowMat = new THREE.MeshStandardMaterial({
           color: 0xffd685,
-          emissive: 0xffa030,
+          emissive: 0xff9a28,
           emissiveIntensity: 1.45,
-          roughness: 0.12
+          roughness: 0.2
         });
         [-1, 1].forEach((side) => {
-          [-0.68, -0.12].forEach((pz) => {
-            const bezel = new THREE.Mesh(new THREE.TorusGeometry(0.066, 0.014, 10, 20), brassMat);
-            bezel.rotation.y = Math.PI / 2;
-            bezel.position.set(side * 0.395, 0.39, pz);
-            boat.add(bezel);
+          const grabRail = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 1.18), oakTrimMat);
+          grabRail.position.set(side * 0.36, 0.70, -0.25);
+          sloopMesh.add(grabRail);
 
-            const glass = new THREE.Mesh(new THREE.CircleGeometry(0.06, 18), portGlowMat);
-            glass.rotation.y = side * (Math.PI / 2);
-            glass.position.set(side * 0.397, 0.39, pz);
-            boat.add(glass);
+          [-0.56, -0.18, 0.20].forEach((pz) => {
+            const bezel = new THREE.Mesh(new THREE.TorusGeometry(0.052, 0.012, 8, 16), brassMat);
+            bezel.rotation.y = Math.PI / 2;
+            bezel.position.set(side * 0.445, 0.53, pz);
+            sloopMesh.add(bezel);
+
+            const glass = new THREE.Mesh(new THREE.CircleGeometry(0.046, 14), portholeGlowMat);
+            glass.rotation.y = side * Math.PI / 2;
+            glass.position.set(side * 0.447, 0.53, pz);
+            sloopMesh.add(glass);
           });
         });
 
-        // Cockpit seats, binnacle compass & spoked helm wheel
-        const cockpitWell = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.14, 1.38), teakMat);
-        cockpitWell.position.set(0, 0.27, 1.22);
-        cockpitWell.receiveShadow = true;
-        boat.add(cockpitWell);
+        // Bow pulpit rails, stanchions, bowsprit & anchor
+        const bowsprit = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.044, 1.18, 10), oakTrimMat);
+        bowsprit.rotation.x = Math.PI / 2 - 0.12;
+        bowsprit.position.set(0, 0.55, -2.56);
+        bowsprit.castShadow = true;
+        sloopMesh.add(bowsprit);
 
-        [-0.34, 0.34].forEach((sx) => {
-          const bench = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.04, 1.15), teakMat);
-          bench.position.set(sx, 0.36, 1.22);
-          bench.castShadow = true;
-          boat.add(bench);
+        const bowCleat = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.04, 0.045), brassMat);
+        bowCleat.position.set(0, 0.53, -2.10);
+        sloopMesh.add(bowCleat);
+
+        const bowAnchorShank = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.025, 0.36), ironMat);
+        bowAnchorShank.position.set(0.12, 0.54, -2.26);
+        bowAnchorShank.rotation.y = -0.25;
+        sloopMesh.add(bowAnchorShank);
+
+        const bowAnchorFluke = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.016, 6, 12, Math.PI), ironMat);
+        bowAnchorFluke.rotation.x = Math.PI / 2;
+        bowAnchorFluke.rotation.z = Math.PI * 0.5;
+        bowAnchorFluke.position.set(0.16, 0.54, -2.42);
+        sloopMesh.add(bowAnchorFluke);
+
+        const foredeckCoil = createCoiledRope(0.16, 0.014, hempRopeMat);
+        foredeckCoil.position.set(-0.18, 0.51, -1.68);
+        sloopMesh.add(foredeckCoil);
+
+        // Tapered Spruce Mast, Spreaders, Standing Rigging & Masthead Burgee
+        const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.056, 5.05, 14), oakTrimMat);
+        mast.position.set(0, 2.90, -0.78);
+        mast.castShadow = true;
+        sloopMesh.add(mast);
+
+        const mastTruck = new THREE.Mesh(new THREE.SphereGeometry(0.048, 12, 10), brassMat);
+        mastTruck.position.set(0, 5.44, -0.78);
+        sloopMesh.add(mastTruck);
+
+        // Fluttering crimson masthead wind burgee pennant
+        const burgeeShape = new THREE.Shape();
+        burgeeShape.moveTo(0, 0.045);
+        burgeeShape.lineTo(0.42, 0.0);
+        burgeeShape.lineTo(0, -0.045);
+        burgeeShape.closePath();
+        const burgeeMesh = new THREE.Mesh(
+          new THREE.ShapeGeometry(burgeeShape),
+          new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.6, side: THREE.DoubleSide })
+        );
+        burgeeMesh.rotation.y = -Math.PI / 2 + 0.25;
+        burgeeMesh.position.set(0, 5.46, -0.78);
+        sloopMesh.add(burgeeMesh);
+
+        // Wooden mast spreaders
+        [-1, 1].forEach((side) => {
+          const spreader = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.018, 0.48, 8), oakTrimMat);
+          spreader.rotation.z = Math.PI / 2;
+          spreader.position.set(side * 0.24, 3.25, -0.78);
+          sloopMesh.add(spreader);
         });
 
-        const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.42, 14), mahoganyMat);
-        pedestal.position.set(0, 0.46, 1.52);
-        pedestal.castShadow = true;
-        boat.add(pedestal);
-
-        const binnacle = new THREE.Mesh(new THREE.SphereGeometry(0.062, 16, 12), brassMat);
-        binnacle.position.set(0, 0.68, 1.52);
-        boat.add(binnacle);
-
-        const wheelGroup = new THREE.Group();
-        wheelGroup.position.set(0, 0.56, 1.60);
-        wheelGroup.rotation.x = -0.18;
-        wheelGroup.add(new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.018, 10, 28), mahoganyMat));
-        const brassRim = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.008, 8, 28), brassMat);
-        brassRim.position.z = 0.012;
-        wheelGroup.add(brassRim);
-        const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.05, 14), brassMat);
-        hub.rotation.x = Math.PI / 2;
-        wheelGroup.add(hub);
-        for (let s = 0; s < 8; s++) {
-          const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.011, 0.48, 8), mahoganyMat);
-          spoke.rotation.z = (s / 8) * Math.PI * 2;
-          wheelGroup.add(spoke);
+        function addRiggingStay(pA, pB, radius = 0.0065) {
+          const dist = pA.distanceTo(pB);
+          const stay = new THREE.Mesh(
+            new THREE.CylinderGeometry(radius, radius, dist, 6),
+            riggingWireMat
+          );
+          stay.position.copy(pA).add(pB).multiplyScalar(0.5);
+          stay.quaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            pB.clone().sub(pA).normalize()
+          );
+          sloopMesh.add(stay);
         }
-        boat.add(wheelGroup);
 
-        // Tapered spruce mast, spreaders, standing rigging & billowing canvas sails
-        const mastHeight = 5.45;
-        const mastMat = new THREE.MeshStandardMaterial({ map: oakTrimTex, roughness: 0.34, metalness: 0.04 });
-        const mastMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.068, mastHeight, 16), mastMat);
-        mastMesh.position.set(0, 0.48 + mastHeight * 0.5, -0.80);
-        mastMesh.castShadow = true;
-        boat.add(mastMesh);
+        const mastHeadPt = new THREE.Vector3(0, 5.25, -0.78);
+        const houndPt = new THREE.Vector3(0, 4.15, -0.78);
+        addRiggingStay(houndPt, new THREE.Vector3(0, 0.62, -3.02)); // Forestay
+        addRiggingStay(mastHeadPt, new THREE.Vector3(0, 0.56, 2.28)); // Backstay
+        addRiggingStay(mastHeadPt, new THREE.Vector3(-0.68, 0.52, -0.72)); // Port shroud
+        addRiggingStay(mastHeadPt, new THREE.Vector3(0.68, 0.52, -0.72)); // Starboard shroud
 
-        const mastTop = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), brassMat);
-        mastTop.position.set(0, 0.48 + mastHeight + 0.03, -0.80);
-        boat.add(mastTop);
-
-        const spreader = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.94, 8), mastMat);
-        spreader.rotation.z = Math.PI / 2;
-        spreader.position.set(0, 3.70, -0.80);
-        boat.add(spreader);
-
+        // Articulated Boom, Reefing Battens & Billowing Mainsail
         const boomRig = new THREE.Group();
-        boomRig.position.set(0, 1.15, -0.76);
+        boomRig.position.set(0, 1.12, -0.74);
         boomRig.rotation.y = 0.22;
+        sloopMesh.add(boomRig);
 
-        const boomMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.044, 2.60, 12), mastMat);
-        boomMesh.rotation.x = Math.PI / 2;
-        boomMesh.position.set(0, 0, 1.28);
-        boomMesh.castShadow = true;
-        boomRig.add(boomMesh);
+        const boomSpar = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.032, 2.55, 10), oakTrimMat);
+        boomSpar.rotation.x = Math.PI / 2;
+        boomSpar.position.set(0, 0, 1.28);
+        boomSpar.castShadow = true;
+        boomRig.add(boomSpar);
 
-        const mainSailGeo = new THREE.PlaneGeometry(2.46, 4.55, 18, 26);
+        const msSegsU = 14;
+        const msSegsV = 18;
+        const mainSailGeo = new THREE.PlaneGeometry(2.45, 3.85, msSegsU, msSegsV);
         const msPos = mainSailGeo.attributes.position;
         const msBaseX = new Float32Array(msPos.count);
         const msUVu = new Float32Array(msPos.count);
         const msUVv = new Float32Array(msPos.count);
 
         for (let i = 0; i < msPos.count; i++) {
-          const uFoot = (msPos.getX(i) + 1.23) / 2.46;
-          const vHeight = (msPos.getY(i) + 2.275) / 4.55;
-          const maxFootAtV = (1.0 - vHeight) * 2.46 + Math.sin(vHeight * Math.PI) * 0.24;
-          const zLocal = uFoot * maxFootAtV + 0.04;
-          const yLocal = vHeight * 4.58 + 0.05;
-          const chordFrac = maxFootAtV > 0.01 ? (uFoot * maxFootAtV) / maxFootAtV : 0.0;
-          const camber = Math.sin(chordFrac * Math.PI) * Math.sin(vHeight * Math.PI * 0.92 + 0.15) * 0.34;
+          const px = msPos.getX(i);
+          const py = msPos.getY(i);
+          const u = (px + 1.225) / 2.45;
+          const v = (py + 1.925) / 3.85;
 
-          msPos.setXYZ(i, camber, yLocal, zLocal);
+          const chordAtV = Math.max(0.04, 1.0 - Math.pow(v, 1.15) * 0.92);
+          const localZ = u * 2.45 * chordAtV;
+          const localY = v * 3.85;
+          const camber = Math.sin(u * Math.PI) * Math.sin(Math.pow(v, 0.7) * Math.PI) * 0.34;
+
+          msPos.setXYZ(i, camber, localY, localZ);
           msBaseX[i] = camber;
-          msUVu[i] = chordFrac;
-          msUVv[i] = vHeight;
+          msUVu[i] = u;
+          msUVv[i] = v;
         }
         mainSailGeo.computeVertexNormals();
-
-        const sailMat = new THREE.MeshStandardMaterial({
-          map: sailClothTex,
-          roughness: 0.78,
-          metalness: 0.0,
-          side: THREE.DoubleSide
-        });
         const mainSailMesh = new THREE.Mesh(mainSailGeo, sailMat);
         mainSailMesh.castShadow = true;
-        mainSailMesh.receiveShadow = true;
         boomRig.add(mainSailMesh);
-        boat.add(boomRig);
 
-        const jibGeo = new THREE.PlaneGeometry(1.42, 3.92, 14, 20);
+        // Foresail / Jib
+        const jibGeo = new THREE.PlaneGeometry(1.75, 3.25, 12, 16);
         const jbPos = jibGeo.attributes.position;
         const jbBaseX = new Float32Array(jbPos.count);
         const jbUVu = new Float32Array(jbPos.count);
         const jbUVv = new Float32Array(jbPos.count);
 
         for (let i = 0; i < jbPos.count; i++) {
-          const u = (jbPos.getX(i) + 0.71) / 1.42;
-          const v = (jbPos.getY(i) + 1.96) / 3.92;
-          const footLen = (1.0 - v) * 1.45;
-          const zStay = THREE.MathUtils.lerp(-2.30, -0.84, v);
-          const zLocal = zStay + u * footLen;
-          const yLocal = 0.56 + v * 4.22;
-          const belly = Math.sin(u * Math.PI) * Math.sin(v * Math.PI * 0.9 + 0.1) * 0.22;
-          jbPos.setXYZ(i, belly + u * 0.14, yLocal, zLocal);
-          jbBaseX[i] = belly + u * 0.14;
+          const px = jbPos.getX(i);
+          const py = jbPos.getY(i);
+          const u = (px + 0.875) / 1.75;
+          const v = (py + 1.625) / 3.25;
+
+          const stayZ = THREE.MathUtils.lerp(-2.95, -0.82, v);
+          const stayY = THREE.MathUtils.lerp(0.60, 3.89, v);
+          const clewZ = -0.92;
+          const clewY = 0.76;
+
+          const localZ = THREE.MathUtils.lerp(stayZ, clewZ, u * (1.0 - v * 0.88));
+          const localY = THREE.MathUtils.lerp(stayY, clewY, u * (1.0 - v * 0.88));
+          const camber = Math.sin(u * Math.PI) * (1.0 - v * 0.6) * 0.24;
+
+          jbPos.setXYZ(i, camber, localY, localZ);
+          jbBaseX[i] = camber;
           jbUVu[i] = u;
           jbUVv[i] = v;
         }
         jibGeo.computeVertexNormals();
         const jibMesh = new THREE.Mesh(jibGeo, sailMat);
         jibMesh.castShadow = true;
-        boat.add(jibMesh);
+        sloopMesh.add(jibMesh);
 
-        // Stainless stays, brass stern lantern, coiled rope & bow anchor chain
-        const stayMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.3, metalness: 0.85 });
-        function addStay(p1, p2) {
-          const dir = new THREE.Vector3().subVectors(p2, p1);
-          const len = dir.length();
-          const stay = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, len, 6), stayMat);
-          stay.position.copy(p1).addScaledVector(dir, 0.5);
-          stay.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
-          boat.add(stay);
-        }
-        const mastHeadPt = new THREE.Vector3(0, 5.75, -0.80);
-        addStay(mastHeadPt, new THREE.Vector3(0, 0.48, -2.34));
-        addStay(mastHeadPt, new THREE.Vector3(0, 0.36, 2.36));
-        addStay(mastHeadPt, new THREE.Vector3(-0.70, 0.28, -0.55));
-        addStay(mastHeadPt, new THREE.Vector3(0.70, 0.28, -0.55));
-
-        const lanternGroup = new THREE.Group();
-        lanternGroup.position.set(0.16, 0.56, 2.18);
-        const lCap = new THREE.Mesh(new THREE.ConeGeometry(0.065, 0.06, 12), brassMat);
-        lCap.position.y = 0.08;
-        lanternGroup.add(lCap);
-        const lBase = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.04, 12), brassMat);
-        lBase.position.y = -0.07;
-        lanternGroup.add(lBase);
-        const lGlass = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.046, 0.042, 0.12, 12),
-          new THREE.MeshStandardMaterial({
-            color: 0xffd27d,
-            emissive: 0xff9d2e,
-            emissiveIntensity: 1.65,
-            roughness: 0.15
-          })
-        );
-        lanternGroup.add(lGlass);
-        boat.add(lanternGroup);
-
-        const coilGroup = new THREE.Group();
-        coilGroup.position.set(-0.24, 0.34, -1.48);
-        coilGroup.rotation.x = -0.08;
-        for (let c = 0; c < 5; c++) {
-          const ring = new THREE.Mesh(new THREE.TorusGeometry(0.04 + c * 0.018, 0.009, 7, 18), ropeMat);
-          ring.rotation.x = Math.PI / 2;
-          coilGroup.add(ring);
-        }
-        boat.add(coilGroup);
-
-        const chainCurve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(0.05, 0.47, -2.34),
-          new THREE.Vector3(0.14, -0.65, -2.76),
-          new THREE.Vector3(0.28, -2.15, -3.20),
-          new THREE.Vector3(0.42, -3.55, -3.65)
-        ]);
-        const chainMesh = new THREE.Mesh(
-          new THREE.TubeGeometry(chainCurve, 22, 0.014, 6, false),
-          new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.45, metalness: 0.85 })
-        );
-        boat.add(chainMesh);
-
-        boat.userData.sailAnim = {
+        sloopMesh.userData.sailAnim = {
           boomRig,
+          burgeeMesh,
           mainSailGeo,
           msBaseX,
           msUVu,
@@ -2308,203 +2534,494 @@
           jbUVu,
           jbUVv
         };
+        scene.add(sloopMesh);
 
-        return boat;
-      }
-
-      // BOAT 2: LAPSTRAKE FISHING SKIFF (~3.5m at X=-6.8, Z=4.6)
-      function buildFishingSkiff() {
-        const skiff = new THREE.Group();
-
-        const hullGeo = createLoftedHullGeometry({
-          length: 3.50,
-          beam: 1.18,
-          depth: 0.35,
-          sheerBow: 0.21,
-          sheerStern: 0.12,
-          transomWidthRatio: 0.48,
-          deadrise: 0.22,
-          lapstrakeSteps: 7,
-          threeTone: false,
-          topColor: new THREE.Color(0x3b6e64),
-          bottomColor: new THREE.Color(0xefe6d2)
+        // -----------------------------------------------------------------------
+        // 2. 3.5m Wooden Coastal Fishing Skiff (X=-6.8, Z=1.8)
+        // -----------------------------------------------------------------------
+        const skiffMesh = new THREE.Group();
+        const skiffHullGeo = createBoatHullGeometry(3.50, 1.16, 0.64, 1.55, 0.62, {
+          topsideHex: 0x45808b,
+          stripeHex: 0xf4efe6,
+          bottomHex: 0x3b241c,
+          lapstrake: true,
+          strakeCount: 6
         });
-        const hullMesh = new THREE.Mesh(
-          hullGeo,
-          new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.34, metalness: 0.04, side: THREE.DoubleSide })
+        const skiffHull = new THREE.Mesh(skiffHullGeo, hullTealMat);
+        skiffHull.castShadow = true;
+        skiffHull.receiveShadow = true;
+        skiffMesh.add(skiffHull);
+        addHullGunwalesAndStem(skiffMesh, skiffHullGeo, oakTrimMat, 0.024);
+        addInteriorRibsAndDuckboards(skiffMesh, skiffHullGeo, 3.50, 0.64, oakTrimMat, deckTeakMat, 7);
+
+        const skiffKeel = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.24, 2.65), oakTrimMat);
+        skiffKeel.position.set(0, -0.34, 0.10);
+        skiffMesh.add(skiffKeel);
+
+        // Three wooden thwarts (rowing benches) + bow breast-hook
+        [-0.75, 0.10, 0.95].forEach((tz, idx) => {
+          const w = idx === 0 ? 0.66 : idx === 1 ? 0.96 : 0.84;
+          const bench = new THREE.Mesh(new THREE.BoxGeometry(w, 0.035, 0.22), deckTeakMat);
+          bench.position.set(0, 0.21, tz);
+          bench.castShadow = true;
+          bench.receiveShadow = true;
+          skiffMesh.add(bench);
+        });
+
+        // Brass rowlock sockets on midship gunwales
+        [-0.56, 0.56].forEach((rx) => {
+          const rowlock = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.007, 6, 12, Math.PI * 1.3), brassMat);
+          rowlock.position.set(rx, 0.35, 0.18);
+          skiffMesh.add(rowlock);
+        });
+
+        // Pair of sculpted ash oars resting across the thwarts
+        [-0.16, 0.16].forEach((ox) => {
+          const oar = createSculptedOar(2.25, oakTrimMat, leatherMat);
+          oar.position.set(ox, 0.25, 0.12);
+          oar.rotation.y = ox * 0.38;
+          skiffMesh.add(oar);
+        });
+
+        // Slatted wooden fish crate with catch + coiled mooring rope + bailer bucket
+        const skiffCrate = createDetailedFishCrate(0.42, 0.22, 0.30, oakTrimMat, true);
+        skiffCrate.position.set(0.04, -0.09, -0.34);
+        skiffCrate.rotation.y = 0.16;
+        skiffMesh.add(skiffCrate);
+
+        const skiffCoil = createCoiledRope(0.13, 0.012, hempRopeMat);
+        skiffCoil.position.set(0, 0.23, -0.75);
+        skiffMesh.add(skiffCoil);
+
+        const bailerBucket = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.085, 0.068, 0.16, 12),
+          new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.38, metalness: 0.78 })
         );
-        hullMesh.castShadow = true;
-        hullMesh.receiveShadow = true;
-        skiff.add(hullMesh);
+        bailerBucket.position.set(-0.14, 0.0, 0.55);
+        skiffMesh.add(bailerBucket);
 
-        const oakMat = new THREE.MeshStandardMaterial({ map: oakTrimTex, roughness: 0.32, metalness: 0.04 });
-        skiff.add(createGunwaleRails(3.50, 1.18, 0.21, 0.12, 0.48, oakMat));
+        scene.add(skiffMesh);
 
-        // Floorboards & oak ribs
-        for (let b = -2; b <= 2; b++) {
-          const plank = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.022, 2.30), oakMat);
-          plank.position.set(b * 0.11, -0.08, 0.12);
-          plank.receiveShadow = true;
-          skiff.add(plank);
-        }
+        // -----------------------------------------------------------------------
+        // 3. 2.3m Wooden Tender Dinghy (X=2.4, Z=4.6)
+        // -----------------------------------------------------------------------
+        const dinghyMesh = new THREE.Group();
+        const dinghyHullGeo = createBoatHullGeometry(2.30, 0.92, 0.52, 1.48, 0.66, {
+          topsideHex: 0xf4efe4,
+          stripeHex: 0x264e68,
+          bottomHex: 0x6b281e,
+          lapstrake: true,
+          strakeCount: 5
+        });
+        const dinghyHull = new THREE.Mesh(dinghyHullGeo, hullCreamMat);
+        dinghyHull.castShadow = true;
+        dinghyHull.receiveShadow = true;
+        dinghyMesh.add(dinghyHull);
+        addHullGunwalesAndStem(dinghyMesh, dinghyHullGeo, oakTrimMat, 0.020);
+        addInteriorRibsAndDuckboards(dinghyMesh, dinghyHullGeo, 2.30, 0.52, oakTrimMat, deckTeakMat, 5);
 
-        [
-          { z: -0.98, w: 0.74, y: 0.22 },
-          { z:  0.08, w: 1.06, y: 0.19 },
-          { z:  1.18, w: 0.86, y: 0.21 }
-        ].forEach((tw) => {
-          const seat = new THREE.Mesh(new THREE.BoxGeometry(tw.w, 0.032, 0.24), oakMat);
-          seat.position.set(0, tw.y, tw.z);
+        [-0.35, 0.42].forEach((tz) => {
+          const seat = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.032, 0.19), oakTrimMat);
+          seat.position.set(0, 0.17, tz);
           seat.castShadow = true;
-          seat.receiveShadow = true;
-          skiff.add(seat);
+          dinghyMesh.add(seat);
         });
 
-        [-1, 1].forEach((side, idx) => {
-          const oarlock = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.007, 8, 16, Math.PI * 1.3), brassMat);
-          oarlock.position.set(side * 0.55, 0.28, 0.12);
-          skiff.add(oarlock);
-
-          const oarGroup = new THREE.Group();
-          const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.020, 1.88, 10), oakMat);
-          shaft.rotation.x = Math.PI / 2;
-          oarGroup.add(shaft);
-
-          const blade = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.014, 0.62), oakMat);
-          blade.position.set(0, 0, 1.06);
-          oarGroup.add(blade);
-
-          oarGroup.position.set(side * 0.22, 0.24 + idx * 0.018, 0.15);
-          oarGroup.rotation.set(0.04, side * -0.14, 0.0);
-          oarGroup.castShadow = true;
-          skiff.add(oarGroup);
+        // Pair of compact dinghy sculling oars & bow painter coil
+        [-0.12, 0.12].forEach((ox) => {
+          const dinghyOar = createSculptedOar(1.68, oakTrimMat, leatherMat);
+          dinghyOar.position.set(ox, 0.20, 0.05);
+          dinghyOar.rotation.y = -ox * 0.42;
+          dinghyMesh.add(dinghyOar);
         });
 
-        const basketMat = new THREE.MeshStandardMaterial({ color: 0xa67c46, roughness: 0.82, metalness: 0.0 });
-        const basketBody = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 0.24, 16), basketMat);
-        basketBody.scale.set(1.15, 1.0, 0.85);
-        basketBody.position.set(-0.18, 0.05, 0.64);
-        basketBody.castShadow = true;
-        skiff.add(basketBody);
+        const dinghyCoil = createCoiledRope(0.11, 0.011, hempRopeMat);
+        dinghyCoil.position.set(0, 0.19, -0.36);
+        dinghyMesh.add(dinghyCoil);
 
-        const basketLid = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.03, 16), basketMat);
-        basketLid.scale.set(1.15, 1.0, 0.85);
-        basketLid.position.set(-0.18, 0.18, 0.64);
-        skiff.add(basketLid);
-
-        return skiff;
-      }
-
-      // BOAT 3: VARNISHED MAHOGANY DINGHY (~2.3m at X=2.4, Z=7.4)
-      function buildVarnishedDinghy() {
-        const dinghy = new THREE.Group();
-
-        const hullGeo = createLoftedHullGeometry({
-          length: 2.30,
-          beam: 0.94,
-          depth: 0.28,
-          sheerBow: 0.16,
-          sheerStern: 0.09,
-          transomWidthRatio: 0.52,
-          deadrise: 0.18,
-          threeTone: false,
-          topColor: new THREE.Color(0x984420),
-          bottomColor: new THREE.Color(0x5a220c)
+        // Rope side fenders
+        [-0.44, 0.44].forEach((fx) => {
+          const fender = new THREE.Mesh(new THREE.CapsuleGeometry(0.032, 0.14, 6, 10), hempRopeMat);
+          fender.position.set(fx, 0.16, 0.05);
+          dinghyMesh.add(fender);
         });
-        const hullMesh = new THREE.Mesh(
-          hullGeo,
-          new THREE.MeshStandardMaterial({
-            map: mahoganyTex,
-            vertexColors: true,
-            roughness: 0.18,
-            metalness: 0.06,
-            side: THREE.DoubleSide
-          })
+
+        scene.add(dinghyMesh);
+
+        // -----------------------------------------------------------------------
+        // 4. 4.3m Classic Wooden Coastal Fishing Trawler / Cutter (X=-11.8, Z=8.2)
+        // -----------------------------------------------------------------------
+        const trawlerMesh = new THREE.Group();
+        const trawlerHullGeo = createBoatHullGeometry(4.30, 1.44, 0.86, 1.52, 0.64, {
+          topsideHex: 0x9c332b,
+          stripeHex: 0xf4efe6,
+          bottomHex: 0x1e293b,
+          lapstrake: true,
+          strakeCount: 7
+        });
+        const trawlerHull = new THREE.Mesh(trawlerHullGeo, hullCrimsonMat);
+        trawlerHull.castShadow = true;
+        trawlerHull.receiveShadow = true;
+        trawlerMesh.add(trawlerHull);
+        addHullGunwalesAndStem(trawlerMesh, trawlerHullGeo, oakTrimMat, 0.030);
+
+        const trawlerKeel = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.56, 2.75), ironMat);
+        trawlerKeel.position.set(0, -0.58, 0.12);
+        trawlerMesh.add(trawlerKeel);
+
+        const trawlerRudder = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.48, 0.34), oakTrimMat);
+        trawlerRudder.position.set(0, -0.46, 1.92);
+        trawlerMesh.add(trawlerRudder);
+
+        const trawlerDeckGeo = createBoatHullGeometry(4.18, 1.36, 0.12, 1.52, 0.64, {
+          topsideHex: 0xffffff,
+          stripeHex: 0xffffff,
+          bottomHex: 0xffffff,
+          lapstrake: false
+        });
+        trawlerDeckGeo.scale(1, 0.15, 1);
+        const trawlerDeck = new THREE.Mesh(trawlerDeckGeo, deckTeakMat);
+        trawlerDeck.position.y = 0.41;
+        trawlerDeck.receiveShadow = true;
+        trawlerMesh.add(trawlerDeck);
+
+        // Tire fenders hung along both hull sides
+        [-0.71, 0.71].forEach((tx) => {
+          [-0.45, 0.55].forEach((tz) => {
+            const tire = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.036, 8, 14), ironMat);
+            tire.rotation.y = Math.PI / 2;
+            tire.position.set(tx, 0.28, tz);
+            trawlerMesh.add(tire);
+          });
+        });
+
+        // Bow anchor & foredeck windlass
+        const windlass = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.28, 12), ironMat);
+        windlass.rotation.z = Math.PI / 2;
+        windlass.position.set(0, 0.50, -1.48);
+        trawlerMesh.add(windlass);
+
+        // Raised Wooden Wheelhouse with Framed Mullion Windows, Helm & Navigation Lights
+        const wheelhouse = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.66, 0.94), superCreamMat);
+        wheelhouse.position.set(0, 0.73, -0.35);
+        wheelhouse.castShadow = true;
+        trawlerMesh.add(wheelhouse);
+
+        const whRoof = new THREE.Mesh(new THREE.BoxGeometry(1.00, 0.055, 1.08), oakTrimMat);
+        whRoof.position.set(0, 1.08, -0.35);
+        whRoof.castShadow = true;
+        trawlerMesh.add(whRoof);
+
+        // Roof brass searchlight & radar scanner
+        const searchlight = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 12), brassMat);
+        searchlight.rotation.x = Math.PI / 2;
+        searchlight.position.set(0.24, 1.16, -0.72);
+        trawlerMesh.add(searchlight);
+
+        const radarBar = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.035, 0.07), superCreamMat);
+        radarBar.position.set(-0.16, 1.18, -0.32);
+        trawlerMesh.add(radarBar);
+
+        const warmWindowMat = new THREE.MeshStandardMaterial({
+          color: 0xffd584,
+          emissive: 0xff9224,
+          emissiveIntensity: 1.45,
+          roughness: 0.2
+        });
+        const frontGlass = new THREE.Mesh(new THREE.PlaneGeometry(0.72, 0.28), warmWindowMat);
+        frontGlass.position.set(0, 0.85, -0.825);
+        frontGlass.rotation.y = Math.PI;
+        trawlerMesh.add(frontGlass);
+
+        // Front window mullions
+        [-0.24, 0, 0.24].forEach((mx) => {
+          const mullion = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.30, 0.03), oakTrimMat);
+          mullion.position.set(mx, 0.85, -0.825);
+          trawlerMesh.add(mullion);
+        });
+
+        [-1, 1].forEach((side) => {
+          const sideGlass = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.26), warmWindowMat);
+          sideGlass.position.set(side * 0.445, 0.85, -0.35);
+          sideGlass.rotation.y = side * Math.PI * 0.5;
+          trawlerMesh.add(sideGlass);
+
+          // Port (red) & Starboard (green) navigation sidelights
+          const navLight = new THREE.Mesh(
+            new THREE.SphereGeometry(0.032, 10, 8),
+            new THREE.MeshStandardMaterial({
+              color: side < 0 ? 0xef4444 : 0x22c55e,
+              emissive: side < 0 ? 0xdc2626 : 0x16a34a,
+              emissiveIntensity: 1.8
+            })
+          );
+          navLight.position.set(side * 0.48, 1.02, -0.62);
+          trawlerMesh.add(navLight);
+        });
+
+        // Exhaust smokestack behind wheelhouse
+        const smokeStack = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.92, 12), ironMat);
+        smokeStack.position.set(-0.28, 0.96, 0.22);
+        smokeStack.castShadow = true;
+        trawlerMesh.add(smokeStack);
+
+        // Cargo Mast, Derrick Boom, Rigging Stays & Hanging Masthead Lantern
+        const trawlerMast = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.048, 2.90, 12), oakTrimMat);
+        trawlerMast.position.set(0, 1.78, 0.35);
+        trawlerMast.castShadow = true;
+        trawlerMesh.add(trawlerMast);
+
+        const derrickBoom = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.030, 1.68, 10), oakTrimMat);
+        derrickBoom.position.set(0, 1.56, 1.04);
+        derrickBoom.rotation.x = 0.92;
+        derrickBoom.castShadow = true;
+        trawlerMesh.add(derrickBoom);
+
+        // Topping lift cable from masthead to derrick boom tip
+        const boomCable = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 1.56, 6), riggingWireMat);
+        boomCable.position.set(0, 2.62, 1.02);
+        boomCable.rotation.x = -0.96;
+        trawlerMesh.add(boomCable);
+
+        const mastLantern = new THREE.Mesh(
+          new THREE.SphereGeometry(0.06, 12, 10),
+          new THREE.MeshStandardMaterial({ color: 0xffe4a0, emissive: 0xffa030, emissiveIntensity: 1.8 })
         );
-        hullMesh.castShadow = true;
-        hullMesh.receiveShadow = true;
-        dinghy.add(hullMesh);
+        mastLantern.position.set(0, 3.16, 0.35);
+        trawlerMesh.add(mastLantern);
 
-        const ashMat = new THREE.MeshStandardMaterial({ map: oakTrimTex, roughness: 0.26, metalness: 0.04 });
-        dinghy.add(createGunwaleRails(2.30, 0.94, 0.16, 0.09, 0.52, ashMat));
+        // Aft Fish Hold Hatch, Bundled Trawl Net, Fish Crates & Striped Lifebuoy
+        const fishHatch = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.16, 0.78), oakTrimMat);
+        fishHatch.position.set(0, 0.49, 0.92);
+        fishHatch.castShadow = true;
+        trawlerMesh.add(fishHatch);
 
-        const seat1 = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.026, 0.20), ashMat);
-        seat1.position.set(0, 0.16, -0.15);
-        seat1.castShadow = true;
-        dinghy.add(seat1);
+        const trawlerNet = createBundledFishingNet(1.15, netWireMat, [0xf97316, 0x2dd4bf, 0xfacc15]);
+        trawlerNet.position.set(0.06, 0.56, 0.94);
+        trawlerMesh.add(trawlerNet);
 
-        const seat2 = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.026, 0.20), ashMat);
-        seat2.position.set(0, 0.17, 0.70);
-        seat2.castShadow = true;
-        dinghy.add(seat2);
+        const trawlerCrate = createDetailedFishCrate(0.38, 0.20, 0.28, oakTrimMat, true);
+        trawlerCrate.position.set(-0.26, 0.42, 1.48);
+        trawlerCrate.rotation.y = 0.32;
+        trawlerMesh.add(trawlerCrate);
 
-        const bowRing = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.008, 8, 16), brassMat);
-        bowRing.position.set(0, 0.36, -1.16);
-        dinghy.add(bowRing);
-
-        const crate = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.22), ashMat);
-        crate.position.set(0.08, 0.06, 0.30);
-        crate.rotation.y = 0.25;
-        crate.castShadow = true;
-        dinghy.add(crate);
-
-        return dinghy;
-      }
-
-      function buildMooringBuoy() {
-        const buoy = new THREE.Group();
-        const body = new THREE.Mesh(
-          new THREE.SphereGeometry(0.22, 20, 16),
-          new THREE.MeshStandardMaterial({ map: buoyTex, roughness: 0.42, metalness: 0.05 })
+        const lifebuoy = new THREE.Mesh(
+          new THREE.TorusGeometry(0.16, 0.042, 10, 20),
+          new THREE.MeshStandardMaterial({ map: buoyTex, roughness: 0.35 })
         );
-        body.scale.set(1.0, 1.15, 1.0);
-        body.castShadow = true;
-        buoy.add(body);
+        lifebuoy.position.set(0.46, 0.74, -0.25);
+        lifebuoy.rotation.y = Math.PI * 0.5;
+        trawlerMesh.add(lifebuoy);
 
-        const topRing = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.01, 8, 16), brassMat);
-        topRing.position.y = 0.26;
-        buoy.add(topRing);
+        scene.add(trawlerMesh);
 
-        return buoy;
-      }
+        // -----------------------------------------------------------------------
+        // 5. 3.7m Varnished Cedar Coastal Dory (X=13.6, Z=1.8)
+        // -----------------------------------------------------------------------
+        const doryMesh = new THREE.Group();
+        const doryHullGeo = createBoatHullGeometry(3.70, 1.20, 0.66, 1.72, 0.52, {
+          topsideHex: 0xd0894a,
+          stripeHex: 0xf4efe6,
+          bottomHex: 0x24473a,
+          lapstrake: true,
+          strakeCount: 6
+        });
+        const doryHull = new THREE.Mesh(doryHullGeo, hullCedarMat);
+        doryHull.castShadow = true;
+        doryHull.receiveShadow = true;
+        doryMesh.add(doryHull);
+        addHullGunwalesAndStem(doryMesh, doryHullGeo, oakTrimMat, 0.025);
+        addInteriorRibsAndDuckboards(doryMesh, doryHullGeo, 3.70, 0.66, oakTrimMat, deckTeakMat, 7);
 
-      const sloopMesh = buildCoastalSloop();
-      const skiffMesh = buildFishingSkiff();
-      const dinghyMesh = buildVarnishedDinghy();
-      const buoyMesh = buildMooringBuoy();
+        const doryKeel = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.24, 2.75), oakTrimMat);
+        doryKeel.position.set(0, -0.35, 0.05);
+        doryMesh.add(doryKeel);
 
-      scene.add(sloopMesh);
-      scene.add(skiffMesh);
-      scene.add(dinghyMesh);
-      scene.add(buoyMesh);
+        [-0.82, 0.08, 0.96].forEach((tz, idx) => {
+          const w = idx === 0 ? 0.66 : idx === 1 ? 0.98 : 0.80;
+          const thwart = new THREE.Mesh(new THREE.BoxGeometry(w, 0.035, 0.22), superCreamMat);
+          thwart.position.set(0, 0.22, tz);
+          thwart.castShadow = true;
+          doryMesh.add(thwart);
+        });
 
-      const skiffRopeGeo = new THREE.BufferGeometry();
-      const dinghyRopeGeo = new THREE.BufferGeometry();
-      const ropeLineMat = new THREE.LineBasicMaterial({ color: 0xd8c39e });
-      scene.add(new THREE.Line(skiffRopeGeo, ropeLineMat));
-      scene.add(new THREE.Line(dinghyRopeGeo, ropeLineMat));
+        // Sculpted ash oars, coiled bow rope, fish crate & bundled fishing net
+        [-0.18, 0.18].forEach((ox) => {
+          const doryOar = createSculptedOar(2.35, oakTrimMat, leatherMat);
+          doryOar.position.set(ox, 0.26, 0.05);
+          doryOar.rotation.y = ox * 0.30;
+          doryMesh.add(doryOar);
+        });
 
-      function updateCatenaryRope(geometry, pStart, pEnd, sagAmount) {
-        const pts = [];
-        const steps = 16;
-        for (let i = 0; i <= steps; i++) {
-          const t = i / steps;
-          const p = new THREE.Vector3().lerpVectors(pStart, pEnd, t);
-          p.y -= Math.sin(t * Math.PI) * sagAmount;
-          pts.push(p);
+        const doryCoil = createCoiledRope(0.14, 0.012, hempRopeMat);
+        doryCoil.position.set(0, 0.24, -0.82);
+        doryMesh.add(doryCoil);
+
+        const doryCrate = createDetailedFishCrate(0.40, 0.20, 0.28, oakTrimMat, true);
+        doryCrate.position.set(0.0, -0.10, -0.34);
+        doryMesh.add(doryCrate);
+
+        const doryNet = createBundledFishingNet(1.05, netWireMat, [0x2dd4bf, 0xf97316, 0x38bdf8]);
+        doryNet.position.set(0.0, -0.08, 0.54);
+        doryMesh.add(doryNet);
+
+        scene.add(doryMesh);
+
+        // -----------------------------------------------------------------------
+        // 6. Striped Harbor Mooring Buoys & Submerged Chains
+        // -----------------------------------------------------------------------
+        function createHarborBuoy() {
+          const bGroup = new THREE.Group();
+          const bBody = new THREE.Mesh(
+            new THREE.SphereGeometry(0.24, 20, 16),
+            new THREE.MeshStandardMaterial({ map: buoyTex, roughness: 0.34, metalness: 0.08 })
+          );
+          bBody.scale.set(1.0, 1.15, 1.0);
+          bBody.castShadow = true;
+          bGroup.add(bBody);
+
+          // Equatorial steel rub-band & forged mooring ring
+          const eqBand = new THREE.Mesh(new THREE.TorusGeometry(0.242, 0.014, 8, 24), ironMat);
+          eqBand.rotation.x = Math.PI / 2;
+          bGroup.add(eqBand);
+
+          const bRing = new THREE.Mesh(new THREE.TorusGeometry(0.058, 0.013, 8, 16), brassMat);
+          bRing.position.y = 0.29;
+          bGroup.add(bRing);
+
+          const bChain = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.014, 0.014, 1.85, 8),
+            ironMat
+          );
+          bChain.position.y = -1.05;
+          bGroup.add(bChain);
+          return bGroup;
         }
-        geometry.setFromPoints(pts);
+
+        const buoyMesh = createHarborBuoy();
+        scene.add(buoyMesh);
+
+        const eastBuoyMesh = createHarborBuoy();
+        scene.add(eastBuoyMesh);
+
+        // -----------------------------------------------------------------------
+        // 7. Dynamic 3D Cylindrical Catenary Mooring Ropes
+        // -----------------------------------------------------------------------
+        function createCatenaryRopeMesh(segs = 22, radius = 0.015) {
+          const radialSegs = 6;
+          const vertCount = (segs + 1) * radialSegs;
+          const positions = new Float32Array(vertCount * 3);
+          const indices = [];
+
+          for (let i = 0; i < segs; i++) {
+            for (let j = 0; j < radialSegs; j++) {
+              const jNext = (j + 1) % radialSegs;
+              const a = i * radialSegs + j;
+              const b = (i + 1) * radialSegs + j;
+              const c = (i + 1) * radialSegs + jNext;
+              const d = i * radialSegs + jNext;
+              indices.push(a, b, d);
+              indices.push(b, c, d);
+            }
+          }
+
+          const geo = new THREE.BufferGeometry();
+          geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+          geo.setIndex(indices);
+          geo.userData = { segs, radialSegs, radius };
+
+          const mesh = new THREE.Mesh(geo, hempRopeMat);
+          mesh.frustumCulled = false;
+          mesh.castShadow = true;
+          return mesh;
+        }
+
+        const skiffRopeMesh = createCatenaryRopeMesh(22, 0.015);
+        scene.add(skiffRopeMesh);
+
+        const dinghyRopeMesh = createCatenaryRopeMesh(22, 0.014);
+        scene.add(dinghyRopeMesh);
+
+        const doryRopeMesh = createCatenaryRopeMesh(22, 0.015);
+        scene.add(doryRopeMesh);
+
+        return {
+          sloopMesh,
+          skiffMesh,
+          dinghyMesh,
+          trawlerMesh,
+          doryMesh,
+          buoyMesh,
+          eastBuoyMesh,
+          skiffRopeMesh,
+          dinghyRopeMesh,
+          doryRopeMesh
+        };
+      }
+
+      const {
+        sloopMesh,
+        skiffMesh,
+        dinghyMesh,
+        trawlerMesh,
+        doryMesh,
+        buoyMesh,
+        eastBuoyMesh,
+        skiffRopeMesh,
+        dinghyRopeMesh,
+        doryRopeMesh
+      } = buildCoastalFleet();
+
+      const _ropePt = new THREE.Vector3();
+      const _ropeTan = new THREE.Vector3();
+      const _ropeSide = new THREE.Vector3();
+      const _ropeUp = new THREE.Vector3();
+      const _worldUp = new THREE.Vector3(0, 1, 0);
+
+      function updateCatenaryRope(ropeMesh, pStart, pEnd, sag) {
+        const geo = ropeMesh.geometry;
+        const { segs, radialSegs, radius } = geo.userData;
+        const pos = geo.attributes.position;
+
+        _ropeTan.subVectors(pEnd, pStart);
+        if (_ropeTan.lengthSq() < 1e-6) _ropeTan.set(0, 0, 1);
+        _ropeTan.normalize();
+        _ropeSide.crossVectors(_ropeTan, _worldUp);
+        if (_ropeSide.lengthSq() < 1e-6) _ropeSide.set(1, 0, 0);
+        _ropeSide.normalize();
+        _ropeUp.crossVectors(_ropeSide, _ropeTan).normalize();
+
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          _ropePt.lerpVectors(pStart, pEnd, t);
+          _ropePt.y -= Math.sin(t * Math.PI) * sag;
+
+          for (let j = 0; j < radialSegs; j++) {
+            const ang = (j / radialSegs) * Math.PI * 2;
+            const cosA = Math.cos(ang) * radius;
+            const sinA = Math.sin(ang) * radius;
+            const idx = i * radialSegs + j;
+            pos.setXYZ(
+              idx,
+              _ropePt.x + _ropeSide.x * cosA + _ropeUp.x * sinA,
+              _ropePt.y + _ropeSide.y * cosA + _ropeUp.y * sinA,
+              _ropePt.z + _ropeSide.z * cosA + _ropeUp.z * sinA
+            );
+          }
+        }
+        pos.needsUpdate = true;
+        geo.computeVertexNormals();
       }
 
       const vessels = [
         {
           mesh: sloopMesh,
           baseX: 5.8,
-          baseZ: 6.2,
+          baseZ: 3.4,
           baseYaw: -0.62,
           halfL: 2.40,
           halfB: 0.74,
-          draftOffset: -0.02,
+          draftOffset: 0.16,
           swingFreq: 0.42,
           swingAmpYaw: 0.24,
           surgeAmpX: 0.26,
@@ -2517,11 +3034,11 @@
         {
           mesh: skiffMesh,
           baseX: -6.8,
-          baseZ: 4.6,
+          baseZ: 1.8,
           baseYaw: 0.48,
           halfL: 1.75,
           halfB: 0.58,
-          draftOffset: -0.015,
+          draftOffset: 0.14,
           swingFreq: 0.54,
           swingAmpYaw: 0.32,
           surgeAmpX: 0.30,
@@ -2534,16 +3051,50 @@
         {
           mesh: dinghyMesh,
           baseX: 2.4,
-          baseZ: 7.4,
+          baseZ: 4.6,
           baseYaw: -0.45,
           halfL: 1.15,
           halfB: 0.46,
-          draftOffset: -0.01,
+          draftOffset: 0.12,
           swingFreq: 0.64,
           swingAmpYaw: 0.36,
           surgeAmpX: 0.34,
           surgeAmpZ: 0.26,
           phase: 3.1,
+          currentY: 0.0,
+          currentPitch: 0.0,
+          currentRoll: 0.0
+        },
+        {
+          mesh: trawlerMesh,
+          baseX: -11.8,
+          baseZ: 8.2,
+          baseYaw: 0.36,
+          halfL: 2.15,
+          halfB: 0.72,
+          draftOffset: 0.17,
+          swingFreq: 0.38,
+          swingAmpYaw: 0.22,
+          surgeAmpX: 0.24,
+          surgeAmpZ: 0.18,
+          phase: 2.2,
+          currentY: 0.0,
+          currentPitch: 0.0,
+          currentRoll: 0.0
+        },
+        {
+          mesh: doryMesh,
+          baseX: 13.6,
+          baseZ: 1.8,
+          baseYaw: -0.52,
+          halfL: 1.85,
+          halfB: 0.60,
+          draftOffset: 0.14,
+          swingFreq: 0.50,
+          swingAmpYaw: 0.30,
+          surgeAmpX: 0.28,
+          surgeAmpZ: 0.20,
+          phase: 4.4,
           currentY: 0.0,
           currentPitch: 0.0,
           currentRoll: 0.0
@@ -2582,7 +3133,9 @@
           const hPort = sampleHullPoint(-spanB, 0);
           const hStarboard = sampleHullPoint(spanB, 0);
 
-          const targetY = (hCenter * 0.36 + (hBow + hStern + hPort + hStarboard) * 0.16) + v.draftOffset;
+          const avgWaterY = hCenter * 0.40 + (hBow + hStern + hPort + hStarboard) * 0.15;
+          const buoyantWaterY = Math.max(avgWaterY, hCenter - 0.02);
+          const targetY = buoyantWaterY + v.draftOffset;
           const targetPitch = Math.atan2(hBow - hStern, spanL * 2.0) * 0.92;
           const targetRoll = Math.atan2(hPort - hStarboard, spanB * 2.0) * 0.92;
 
@@ -2608,6 +3161,9 @@
         const sAnim = sloopMesh.userData.sailAnim;
         if (sAnim) {
           sAnim.boomRig.rotation.y = 0.22 + Math.sin(time * 1.15) * 0.055 * breeze;
+          if (sAnim.burgeeMesh) {
+            sAnim.burgeeMesh.rotation.y = -Math.PI / 2 + 0.25 + Math.sin(time * 6.4) * 0.16 * breeze;
+          }
           const msPos = sAnim.mainSailGeo.attributes.position;
           for (let i = 0; i < msPos.count; i++) {
             const flutter = Math.sin(time * 3.4 - sAnim.msUVu[i] * 5.2 + sAnim.msUVv[i] * 2.4)
@@ -2625,47 +3181,58 @@
           jbPos.needsUpdate = true;
         }
 
-        // Bobbing mooring buoy at (X=-8.6, Z=3.2)
-        const buoyX = -8.6 + Math.sin(time * 0.72) * 0.10;
-        const buoyZ = 3.2 + Math.cos(time * 0.64) * 0.10;
-        const bWave = evaluateOceanWaveJS(buoyX, buoyZ, time, waveInt);
-        const bWaveFwd = evaluateOceanWaveJS(buoyX, buoyZ - 0.2, time, waveInt);
-        const bWaveSide = evaluateOceanWaveJS(buoyX + 0.2, buoyZ, time, waveInt);
-        buoyMesh.position.set(buoyX, bWave.waterY + 0.02, buoyZ);
-        buoyMesh.rotation.set(
-          Math.atan2(bWaveFwd.waterY - bWave.waterY, 0.2) * 0.7,
-          time * 0.25,
-          Math.atan2(bWave.waterY - bWaveSide.waterY, 0.2) * 0.7
-        );
+        // Bobbing harbor mooring buoys
+        function updateBuoyPose(bMesh, bx0, bz0, phaseOffset) {
+          const bx = bx0 + Math.sin(time * 0.72 + phaseOffset) * 0.10;
+          const bz = bz0 + Math.cos(time * 0.64 + phaseOffset) * 0.10;
+          const bWave = evaluateOceanWaveJS(bx, bz, time, waveInt);
+          const bWaveFwd = evaluateOceanWaveJS(bx, bz - 0.2, time, waveInt);
+          const bWaveSide = evaluateOceanWaveJS(bx + 0.2, bz, time, waveInt);
+          bMesh.position.set(bx, bWave.waterY + 0.06, bz);
+          bMesh.rotation.set(
+            Math.atan2(bWaveFwd.waterY - bWave.waterY, 0.2) * 0.7,
+            time * 0.25 + phaseOffset,
+            Math.atan2(bWave.waterY - bWaveSide.waterY, 0.2) * 0.7
+          );
+        }
+
+        updateBuoyPose(buoyMesh, -8.6, 0.4, 0.0);
+        updateBuoyPose(eastBuoyMesh, 15.6, 0.1, 2.1);
 
         skiffMesh.updateMatrixWorld();
         buoyMesh.updateMatrixWorld();
         sloopMesh.updateMatrixWorld();
         dinghyMesh.updateMatrixWorld();
+        doryMesh.updateMatrixWorld();
+        eastBuoyMesh.updateMatrixWorld();
 
-        const skiffBowWorld = new THREE.Vector3(0, 0.42, -1.72).applyMatrix4(skiffMesh.matrixWorld);
-        const buoyRingWorld = new THREE.Vector3(0, 0.26, 0).applyMatrix4(buoyMesh.matrixWorld);
-        updateCatenaryRope(skiffRopeGeo, skiffBowWorld, buoyRingWorld, 0.18);
+        const skiffBowWorld = new THREE.Vector3(0, 0.44, -1.72).applyMatrix4(skiffMesh.matrixWorld);
+        const buoyRingWorld = new THREE.Vector3(0, 0.28, 0).applyMatrix4(buoyMesh.matrixWorld);
+        updateCatenaryRope(skiffRopeMesh, skiffBowWorld, buoyRingWorld, 0.18);
 
-        const dinghyBowWorld = new THREE.Vector3(0, 0.36, -1.16).applyMatrix4(dinghyMesh.matrixWorld);
-        const sloopSternWorld = new THREE.Vector3(0, 0.35, 2.38).applyMatrix4(sloopMesh.matrixWorld);
-        updateCatenaryRope(dinghyRopeGeo, dinghyBowWorld, sloopSternWorld, 0.24);
+        const dinghyBowWorld = new THREE.Vector3(0, 0.38, -1.16).applyMatrix4(dinghyMesh.matrixWorld);
+        const sloopSternWorld = new THREE.Vector3(0, 0.38, 2.38).applyMatrix4(sloopMesh.matrixWorld);
+        updateCatenaryRope(dinghyRopeMesh, dinghyBowWorld, sloopSternWorld, 0.24);
+
+        const doryBowWorld = new THREE.Vector3(0, 0.44, -1.82).applyMatrix4(doryMesh.matrixWorld);
+        const eastBuoyRingWorld = new THREE.Vector3(0, 0.28, 0).applyMatrix4(eastBuoyMesh.matrixWorld);
+        updateCatenaryRope(doryRopeMesh, doryBowWorld, eastBuoyRingWorld, 0.18);
       }
 
       // =========================================================================
-      // 9. ANATOMICALLY ACCURATE PELAGIC SHARK (3.5m) & THUNNIFORM SWIMMING
+      // 9. ANATOMICALLY ACCURATE RUBBERY PELAGIC SHARK (3.55m) & LIVELY SWIMMING
       // =========================================================================
       function createPelagicShark() {
         const sharkGroup = new THREE.Group();
-        const SHARK_LEN = 3.50;
-        const HALF_LEN = SHARK_LEN * 0.5; // Nose at +1.75, caudal peduncle at -1.75
+        const SHARK_LEN = 3.55;
+        const HALF_LEN = SHARK_LEN * 0.5;
 
-        // 1. Closed Lofted Fusiform Elasmobranch Body (128 axial rings x 56 radial segments)
-        const uSegs = 128;
-        const vSegs = 56;
+        const uSegs = 136;
+        const vSegs = 60;
         const positions = [];
         const uvs = [];
         const finMasks = [];
+        const finTypes = [];
         const indices = [];
 
         function getSharkRadii(u) {
@@ -2674,30 +3241,29 @@
           if (u < 0.24) {
             const t = u / 0.24;
             const snoutCurve = Math.pow(Math.sin(t * Math.PI * 0.5), 0.76);
-            rx = 0.004 + 0.310 * snoutCurve;
-            ryDorsal = 0.004 + 0.250 * Math.pow(t, 0.72);
-            ryVentral = 0.003 + 0.178 * Math.pow(t, 0.85);
+            rx = 0.004 + 0.315 * snoutCurve;
+            ryDorsal = 0.004 + 0.255 * Math.pow(t, 0.72);
+            ryVentral = 0.003 + 0.180 * Math.pow(t, 0.85);
             yCenter = -0.022 * Math.sin(t * Math.PI * 0.5);
           } else if (u < 0.44) {
             const t = (u - 0.24) / 0.20;
             const hump = Math.sin(t * Math.PI);
-            rx = 0.314 + 0.024 * hump;
-            ryDorsal = 0.254 + 0.056 * hump;
-            ryVentral = 0.181 + 0.044 * hump;
+            rx = 0.319 + 0.025 * hump;
+            ryDorsal = 0.259 + 0.058 * hump;
+            ryVentral = 0.183 + 0.045 * hump;
             yCenter = -0.022 + 0.014 * hump;
           } else {
             const t = (u - 0.44) / 0.56;
             const taper = Math.pow(Math.max(0.0, 1.0 - t), 1.28);
-            rx = 0.036 + 0.278 * taper;
-            ryDorsal = 0.058 + 0.196 * taper;
-            ryVentral = 0.052 + 0.129 * taper;
+            rx = 0.036 + 0.283 * taper;
+            ryDorsal = 0.058 + 0.201 * taper;
+            ryVentral = 0.052 + 0.131 * taper;
             yCenter = -0.008 * (1.0 - t);
           }
 
-          // Lateral caudal peduncle keels
           if (u > 0.84) {
             const kt = Math.sin(Math.min(1.0, (u - 0.84) / 0.15) * Math.PI);
-            rx += 0.029 * kt;
+            rx += 0.030 * kt;
           }
 
           return { rx, ryDorsal, ryVentral, yCenter };
@@ -2723,7 +3289,7 @@
             let x = sinT * localRx;
             let y = yCenter + cosT * localRy;
 
-            // Orbital eye socket indentation at u ≈ 0.105
+            // Orbital eye socket indentation
             const browDistU = (u - 0.105) / 0.024;
             const eyeAngleDiff = Math.abs(Math.abs(sinT) - 0.94) / 0.14;
             if (Math.abs(browDistU) < 1.6 && eyeAngleDiff < 1.5 && cosT > -0.15 && cosT < 0.55) {
@@ -2731,7 +3297,7 @@
               x -= Math.sign(sinT) * 0.015 * socketEnv;
             }
 
-            // Paired ventral nostrils (nares) at u ≈ 0.055
+            // Paired ventral nostrils (nares)
             const nareU = (u - 0.055) / 0.010;
             const nareSide = (Math.abs(sinT) - 0.54) / 0.11;
             if (cosT < -0.35 && Math.abs(nareU) < 1.5 && Math.abs(nareSide) < 1.5) {
@@ -2739,7 +3305,7 @@
               y += 0.008 * nareEnv;
             }
 
-            // Naturally closed ventral crescent jaw crease at u in [0.092, 0.162]
+            // Closed ventral crescent jaw crease
             if (cosT < -0.45 && u > 0.092 && u < 0.162) {
               const jawArcU = 0.105 + 0.036 * (sinT * sinT);
               const jawDist = (u - jawArcU) / 0.0085;
@@ -2748,20 +3314,21 @@
               y += 0.016 * jawCrease;
             }
 
-            // 5 sculpted recessed vertical gill slits on each flank (u = 0.215 to 0.280)
+            // 5 sculpted recessed vertical gill slits on each flank
             if (Math.abs(sinT) > 0.68 && cosT > -0.42 && cosT < 0.36 && u > 0.205 && u < 0.288) {
               const verticalMask = Math.exp(-Math.pow((cosT + 0.03) / 0.22, 2.0));
               for (let g = 0; g < 5; g++) {
                 const gillU = 0.216 + g * 0.0145 - cosT * 0.012;
                 const dg = (u - gillU) / 0.0026;
                 const slitIndent = Math.exp(-(dg * dg)) * verticalMask;
-                x -= Math.sign(sinT) * 0.016 * slitIndent;
+                x -= Math.sign(sinT) * 0.018 * slitIndent;
               }
             }
 
             positions.push(x, y, z);
             uvs.push(u, v);
             finMasks.push(0.0);
+            finTypes.push(0.0);
           }
         }
 
@@ -2781,11 +3348,11 @@
         bodyGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         bodyGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
         bodyGeo.setAttribute('aFinMask', new THREE.Float32BufferAttribute(finMasks, 1));
+        bodyGeo.setAttribute('aFinType', new THREE.Float32BufferAttribute(finTypes, 1));
         bodyGeo.setIndex(indices);
         bodyGeo.computeVertexNormals();
 
-        // 2. Cambered NACA Airfoil Fin Generator
-        function createAirfoilFinGeometry(profilePts, maxThickness, spanAxis = 'y', droopAngle = 0.0) {
+        function createAirfoilFinGeometry(profilePts, maxThickness, spanAxis = 'y', droopAngle = 0.0, finTypeVal = 1.0) {
           const shape = new THREE.Shape();
           shape.moveTo(profilePts[0][0], profilePts[0][1]);
           for (let i = 1; i < profilePts.length; i++) {
@@ -2814,6 +3381,7 @@
           const spanY = Math.max(0.001, maxY - minY);
           const chordX = Math.max(0.001, maxX - minX);
           const finMaskArr = new Float32Array(p.count);
+          const finTypeArr = new Float32Array(p.count);
 
           for (let i = 0; i < p.count; i++) {
             const sx = p.getX(i);
@@ -2827,8 +3395,8 @@
             const chordTaper = Math.sin(Math.pow(uChord, 0.55) * Math.PI) * 0.85 + 0.15 * (1.0 - uChord);
             const taperedThick = sz * spanTaper * chordTaper;
 
-            // Mark trailing edge & outer fin tip for dark pelagic fin shading
-            finMaskArr[i] = THREE.MathUtils.clamp(vSpan * 0.65 + uChord * 0.55, 0.15, 1.0);
+            finMaskArr[i] = THREE.MathUtils.clamp(vSpan * 0.82 + uChord * 0.28, 0.0, 1.0);
+            finTypeArr[i] = finTypeVal;
 
             if (spanAxis === 'y') {
               p.setXYZ(i, taperedThick, sy, sx);
@@ -2840,72 +3408,73 @@
           }
 
           geo.setAttribute('aFinMask', new THREE.BufferAttribute(finMaskArr, 1));
+          geo.setAttribute('aFinType', new THREE.BufferAttribute(finTypeArr, 1));
           geo.computeVertexNormals();
           return geo;
         }
 
         const dorsal1Geo = createAirfoilFinGeometry([
-          [ 0.24, -0.04],
-          [ 0.12,  0.14],
-          [-0.04,  0.35],
-          [-0.17,  0.43],
-          [-0.22,  0.41],
-          [-0.16,  0.22],
-          [-0.15,  0.04],
-          [-0.23, -0.01],
-          [-0.14, -0.04]
-        ], 0.036, 'y');
-        dorsal1Geo.translate(0, 0.255, 0.36);
+          [ 0.25, -0.04],
+          [ 0.12,  0.15],
+          [-0.04,  0.37],
+          [-0.18,  0.46],
+          [-0.23,  0.44],
+          [-0.17,  0.23],
+          [-0.16,  0.04],
+          [-0.24, -0.01],
+          [-0.15, -0.04]
+        ], 0.036, 'y', 0.0, 1.0);
+        dorsal1Geo.translate(0, 0.258, 0.36);
 
         const dorsal2Geo = createAirfoilFinGeometry([
           [ 0.09, -0.02],
-          [-0.04,  0.11],
-          [-0.08,  0.10],
+          [-0.04,  0.12],
+          [-0.08,  0.11],
           [-0.05,  0.02],
           [-0.11, -0.01],
           [-0.05, -0.02]
-        ], 0.016, 'y');
-        dorsal2Geo.translate(0, 0.105, -0.79);
+        ], 0.016, 'y', 0.0, 1.0);
+        dorsal2Geo.translate(0, 0.105, -0.80);
 
         const analFinGeo = createAirfoilFinGeometry([
           [ 0.08,  0.02],
-          [-0.04, -0.095],
-          [-0.075, -0.085],
+          [-0.04, -0.10],
+          [-0.075, -0.09],
           [-0.045, -0.015],
           [-0.10, 0.005],
           [-0.04, 0.02]
-        ], 0.014, 'y');
-        analFinGeo.translate(0, -0.095, -0.83);
+        ], 0.014, 'y', 0.0, 1.0);
+        analFinGeo.translate(0, -0.095, -0.84);
 
         const caudalGeo = createAirfoilFinGeometry([
-          [ 0.08,  0.055],
-          [-0.08,  0.26],
-          [-0.24,  0.50],
-          [-0.31,  0.55],
-          [-0.33,  0.51],
-          [-0.27,  0.44],
-          [-0.29,  0.41],
-          [-0.21,  0.22],
-          [-0.16,  0.02],
-          [-0.21, -0.18],
-          [-0.27, -0.35],
-          [-0.23, -0.37],
-          [-0.09, -0.19],
-          [ 0.07, -0.05]
-        ], 0.028, 'y');
-        caudalGeo.translate(0, 0.0, -1.70);
+          [ 0.09,  0.055],
+          [-0.08,  0.28],
+          [-0.25,  0.54],
+          [-0.33,  0.59],
+          [-0.35,  0.55],
+          [-0.28,  0.47],
+          [-0.30,  0.44],
+          [-0.22,  0.23],
+          [-0.17,  0.02],
+          [-0.22, -0.19],
+          [-0.29, -0.38],
+          [-0.24, -0.40],
+          [-0.09, -0.20],
+          [ 0.08, -0.05]
+        ], 0.028, 'y', 0.0, 3.0);
+        caudalGeo.translate(0, 0.0, -1.72);
 
         const pecShapePts = [
-          [ 0.18, -0.04],
-          [ 0.02,  0.26],
-          [-0.16,  0.57],
-          [-0.22,  0.61],
-          [-0.24,  0.56],
-          [-0.17,  0.28],
-          [-0.16,  0.04],
-          [-0.21, -0.02]
+          [ 0.19, -0.04],
+          [ 0.02,  0.28],
+          [-0.17,  0.62],
+          [-0.23,  0.66],
+          [-0.25,  0.60],
+          [-0.18,  0.30],
+          [-0.17,  0.04],
+          [-0.22, -0.02]
         ];
-        const pecRightGeo = createAirfoilFinGeometry(pecShapePts, 0.024, 'x', 0.28);
+        const pecRightGeo = createAirfoilFinGeometry(pecShapePts, 0.024, 'x', 0.26, 2.0);
         pecRightGeo.translate(0.25, -0.11, 0.72);
 
         function mirrorGeometryX(srcGeo) {
@@ -2922,6 +3491,7 @@
             const pos = geo.attributes.position;
             const uv = geo.attributes.uv;
             const finMask = geo.attributes.aFinMask;
+            const finType = geo.attributes.aFinType;
             for (let i = 0; i < pos.count; i += 3) {
               const x1 = pos.getX(i + 1), y1 = pos.getY(i + 1), z1 = pos.getZ(i + 1);
               pos.setXYZ(i + 1, pos.getX(i + 2), pos.getY(i + 2), pos.getZ(i + 2));
@@ -2937,6 +3507,11 @@
                 finMask.setX(i + 1, finMask.getX(i + 2));
                 finMask.setX(i + 2, f1);
               }
+              if (finType) {
+                const t1 = finType.getX(i + 1);
+                finType.setX(i + 1, finType.getX(i + 2));
+                finType.setX(i + 2, t1);
+              }
             }
           }
           geo.computeVertexNormals();
@@ -2947,18 +3522,17 @@
 
         const pelvShapePts = [
           [ 0.09, -0.02],
-          [-0.03,  0.16],
-          [-0.09,  0.18],
-          [-0.11,  0.13],
+          [-0.03,  0.17],
+          [-0.09,  0.19],
+          [-0.11,  0.14],
           [-0.08,  0.02],
           [-0.12, -0.01]
         ];
-        const pelvRightGeo = createAirfoilFinGeometry(pelvShapePts, 0.015, 'x', 0.34);
+        const pelvRightGeo = createAirfoilFinGeometry(pelvShapePts, 0.015, 'x', 0.34, 2.0);
         pelvRightGeo.translate(0.14, -0.14, -0.22);
 
         const pelvLeftGeo = mirrorGeometryX(pelvRightGeo);
 
-        // 3. Standalone Custom Dermal Denticle Countershading + Thunniform Swimming Shader
         const sharkShaderMat = new THREE.ShaderMaterial({
           uniforms: {
             uTime: sharedUniforms.uTime,
@@ -2969,6 +3543,7 @@
           },
           vertexShader: /* glsl */ `
             attribute float aFinMask;
+            attribute float aFinType;
             uniform float uTime;
             uniform float uBreeze;
 
@@ -2976,40 +3551,69 @@
             varying vec3 vWorldPos;
             varying vec3 vWorldNormal;
             varying float vFinMask;
+            varying float vFinType;
 
-            // Real thunniform lateral swimming undulation (nose at +1.75, caudal tip at -2.03)
-            float sharkLateralOffset(float zLocal, float t, float speedMult) {
-              float s = clamp((1.75 - zLocal) / 3.50, 0.0, 1.18);
-              float freq = 3.55 * speedMult;
-              float phase = t * freq - s * 4.35;
+            vec3 sharkOrganicDeform(vec3 pos, float finMask, float finType, float t, float speedMult) {
+              vec3 p = pos;
+              float s = clamp((1.775 - p.z) / 3.55, 0.0, 1.25);
+              float freq = 4.35 * speedMult;
+              float phase = t * freq - s * 4.75;
 
-              // Steady head & pectoral girdle (~3.5% subtle counter-yaw)
-              float headCounter = -0.009 * speedMult * (1.0 - smoothstep(0.0, 0.28, s)) * sin(t * freq + 0.35);
+              float headCounter = -0.022 * speedMult * (1.0 - smoothstep(0.0, 0.30, s)) * sin(t * freq + 0.4);
 
-              // Quadratic posterior body & heterocercal caudal fin whip
-              float posterior = max(0.0, s - 0.14);
-              float tailWhip = (0.014 + 0.245 * pow(posterior, 1.85)) * (0.82 + 0.22 * speedMult) * sin(phase);
-              return headCounter + tailWhip;
+              float posterior = max(0.0, s - 0.10);
+              float baseAmp = (0.028 + 0.385 * pow(posterior, 1.72)) * (0.85 + 0.25 * speedMult);
+              float primaryWave = sin(phase) + 0.14 * sin(phase * 2.0 - 0.6);
+              float lateralX = headCounter + baseAmp * primaryWave;
+
+              float verticalY = 0.024 * pow(posterior, 2.2) * sin(phase * 2.0 + 0.5);
+
+              if (finType > 0.5 && finType < 1.5) {
+                float tipFlex = pow(finMask, 1.65) * 0.085 * sin(phase - 0.95);
+                lateralX += tipFlex;
+              } else if (finType > 1.5 && finType < 2.5) {
+                float sideSign = sign(p.x);
+                float spanRatio = finMask;
+                float strokePhase = t * (freq * 0.72) + sideSign * 0.35;
+                float flapY = pow(spanRatio, 1.45) * (0.105 * sin(strokePhase) + 0.036 * sin(strokePhase * 2.0));
+                float sweepZ = pow(spanRatio, 1.3) * 0.048 * cos(strokePhase);
+                float featherTwist = spanRatio * 0.024 * sin(strokePhase - 0.6) * (0.72 - p.z);
+                verticalY += flapY + featherTwist;
+                p.z += sweepZ;
+              } else if (finType > 2.5) {
+                float tailLag = pow(finMask, 1.45) * 0.155 * sin(phase - 0.85);
+                lateralX += tailLag;
+                verticalY += pow(finMask, 1.5) * 0.032 * cos(phase - 0.4);
+              }
+
+              if (finType < 0.5 && p.z > 0.74 && p.z < 1.05 && abs(p.x) > 0.18) {
+                float gillPulse = (0.5 + 0.5 * sin(t * 2.8)) * 0.008;
+                lateralX += sign(p.x) * gillPulse;
+              }
+
+              p.x += lateralX;
+              p.y += verticalY;
+              return p;
             }
 
             void main() {
               vLocalPos = position;
               vFinMask = aFinMask;
+              vFinType = aFinType;
 
-              float speedMult = 0.85 + 0.25 * uBreeze;
-              float dzEps = 0.025;
-              float dx0 = sharkLateralOffset(position.z, uTime, speedMult);
-              float dx1 = sharkLateralOffset(position.z - dzEps, uTime, speedMult);
-              float slopeX = (dx0 - dx1) / dzEps;
+              float speedMult = 0.92 + 0.28 * uBreeze;
+              vec3 bentPos = sharkOrganicDeform(position, aFinMask, aFinType, uTime, speedMult);
 
-              vec3 bentPos = position;
-              bentPos.x += dx0;
+              float eps = 0.02;
+              vec3 dPx = sharkOrganicDeform(position + vec3(eps, 0.0, 0.0), aFinMask, aFinType, uTime, speedMult) - bentPos;
+              vec3 dPy = sharkOrganicDeform(position + vec3(0.0, eps, 0.0), aFinMask, aFinType, uTime, speedMult) - bentPos;
+              vec3 dPz = sharkOrganicDeform(position + vec3(0.0, 0.0, eps), aFinMask, aFinType, uTime, speedMult) - bentPos;
 
-              vec3 bentNormal = normalize(vec3(
-                normal.x - slopeX * normal.z,
-                normal.y,
-                normal.z + slopeX * normal.x
-              ));
+              vec3 bentNormal = normalize(
+                normal.x * cross(dPy, dPz) +
+                normal.y * cross(dPz, dPx) +
+                normal.z * cross(dPx, dPy)
+              );
 
               vec4 worldPos = modelMatrix * vec4(bentPos, 1.0);
               vWorldPos = worldPos.xyz;
@@ -3028,6 +3632,7 @@
             varying vec3 vWorldPos;
             varying vec3 vWorldNormal;
             varying float vFinMask;
+            varying float vFinType;
 
             ${GLSL_SHARED_NOISE_AND_WAVES}
 
@@ -3057,50 +3662,59 @@
               vec3 V = normalize(cameraPosition - vWorldPos);
               vec3 L = normalize(uSunDir);
 
-              // Dermal denticle micro-grain & organic pelagic countershading
-              float mottle = fbm2D(vLocalPos.zy * 4.8 + vec2(2.1, 5.4));
-              float denticle = valueNoise2D(vLocalPos.zy * 145.0 + vLocalPos.xy * 145.0);
-              float myomereBands = sin(vLocalPos.z * 26.0 + abs(vLocalPos.y) * 14.0) * 0.5 + 0.5;
+              float mottle = fbm2D(vLocalPos.zy * 4.6 + vec2(2.1, 5.4));
+              float fineMottle = fbm2D(vLocalPos.zy * 14.0 - vec2(1.3, 3.7));
+              float denticle = valueNoise2D(vLocalPos.zy * 185.0 + vLocalPos.xy * 185.0);
+              float myomereChevrons = sin(vLocalPos.z * 28.0 + abs(vLocalPos.y) * 18.0) * 0.5 + 0.5;
 
-              float boundaryWarp = (fbm2D(vec2(vLocalPos.z * 2.8, 1.7)) - 0.5) * 0.065;
+              float lateralLineDist = abs(vLocalPos.y - (-0.012 - 0.015 * smoothstep(0.5, -1.5, vLocalPos.z)));
+              float lateralLine = (1.0 - smoothstep(0.004, 0.016, lateralLineDist)) * smoothstep(1.1, 0.5, vLocalPos.z) * smoothstep(-1.6, -1.2, vLocalPos.z);
+
+              float boundaryWarp = (fbm2D(vec2(vLocalPos.z * 3.2, 1.7)) - 0.5) * 0.075;
               float pectoralMask = smoothstep(0.35, 0.85, vLocalPos.z) * (1.0 - smoothstep(0.85, 1.25, vLocalPos.z));
-              float ventralLine = -0.045 + boundaryWarp - pectoralMask * 0.035;
+              float ventralLine = -0.048 + boundaryWarp - pectoralMask * 0.038;
 
-              float dorsalMask = smoothstep(ventralLine - 0.045, ventralLine + 0.055, vLocalPos.y);
+              float dorsalMask = smoothstep(ventralLine - 0.055, ventralLine + 0.065, vLocalPos.y + (fineMottle - 0.5) * 0.025);
 
-              vec3 dorsalSlate = mix(vec3(0.13, 0.17, 0.22), vec3(0.24, 0.29, 0.35), mottle);
-              dorsalSlate += (myomereBands - 0.5) * 0.018 + (denticle - 0.5) * 0.024;
+              vec3 dorsalSlate = mix(vec3(0.11, 0.16, 0.21), vec3(0.23, 0.29, 0.35), mottle * 0.7 + fineMottle * 0.3);
+              dorsalSlate += (myomereChevrons - 0.5) * 0.022 + (denticle - 0.5) * 0.026;
+              dorsalSlate = mix(dorsalSlate, vec3(0.12, 0.15, 0.19), lateralLine * 0.38);
 
-              // Subtle natural healed flank markings
               float scarNoise = smoothstep(0.92, 0.985, fbm2D(vec2(vLocalPos.z * 9.0, vLocalPos.y * 22.0)));
-              dorsalSlate = mix(dorsalSlate, vec3(0.48, 0.53, 0.58), scarNoise * 0.35 * dorsalMask);
+              dorsalSlate = mix(dorsalSlate, vec3(0.46, 0.51, 0.56), scarNoise * 0.32 * dorsalMask);
 
-              vec3 ventralBelly = vec3(0.85, 0.88, 0.91) + (denticle - 0.5) * 0.02;
+              vec3 ventralBelly = vec3(0.84, 0.87, 0.89) + (denticle - 0.5) * 0.022 + (fineMottle - 0.5) * 0.02;
               vec3 albedo = mix(ventralBelly, dorsalSlate, dorsalMask);
 
-              // Dark trailing fin edges & tips
-              albedo = mix(albedo, vec3(0.08, 0.10, 0.14), vFinMask * 0.65);
-
-              // Recessed gill slit shading
-              if (abs(vLocalPos.x) > 0.16 && vLocalPos.z > 0.72 && vLocalPos.z < 1.02) {
-                float gillDark = smoothstep(0.28, 0.22, abs(vLocalPos.x));
-                albedo *= mix(1.0, 0.58, gillDark * 0.45);
+              if (vFinType > 0.5) {
+                albedo = mix(albedo, vec3(0.07, 0.09, 0.13), smoothstep(0.25, 0.95, vFinMask) * 0.72);
               }
 
-              // Physically-inspired underwater wrap-diffuse + aqua bounce + wet dermal specular
+              if (vFinType < 0.5 && abs(vLocalPos.x) > 0.16 && vLocalPos.z > 0.72 && vLocalPos.z < 1.04) {
+                float gillDark = smoothstep(0.29, 0.22, abs(vLocalPos.x));
+                albedo = mix(albedo, vec3(0.16, 0.08, 0.09), gillDark * 0.55);
+              }
+
               float diff = max(dot(N, L), 0.0);
-              float wrapDiff = max(0.0, (dot(N, L) + 0.35) / 1.35);
-              vec3 skyDown = vec3(0.26, 0.56, 0.68) * (0.5 + 0.5 * N.y);
-              vec3 sandBounce = vec3(0.22, 0.26, 0.24) * (0.5 - 0.5 * N.y);
+              float wrapDiff = max(0.0, (dot(N, L) + 0.52) / 1.52);
+
+              float thinCartilage = clamp(vFinMask * 0.85 + smoothstep(1.35, 1.77, vLocalPos.z) * 0.55, 0.0, 1.0);
+              float backSSS = pow(clamp(dot(V, -L + N * 0.35), 0.0, 1.0), 2.2) * (0.28 + 0.72 * thinCartilage);
+              vec3 sssTint = mix(vec3(0.16, 0.34, 0.40), vec3(0.32, 0.26, 0.28), thinCartilage * 0.45);
+
+              vec3 skyDown = vec3(0.28, 0.58, 0.70) * (0.5 + 0.5 * N.y);
+              vec3 sandBounce = vec3(0.24, 0.28, 0.26) * (0.5 - 0.5 * N.y);
 
               vec3 H = normalize(L + V);
-              float spec = pow(max(dot(N, H), 0.0), 48.0) * 0.32;
-              float fresnel = pow(1.0 - max(dot(N, V), 0.0), 4.0) * 0.24;
+              float NdotH = max(dot(N, H), 0.0);
+              float satinSheen = pow(NdotH, 16.0) * (0.14 + 0.06 * denticle);
+              float microDenticleSparkle = pow(NdotH, 42.0) * smoothstep(0.65, 0.98, denticle) * 0.12;
+              float rimVelvet = pow(1.0 - max(dot(N, V), 0.0), 3.2) * 0.26;
 
-              vec3 litCol = albedo * (uSunColor * (diff * 0.75 + wrapDiff * 0.35) + skyDown + sandBounce)
-                          + uSunColor * spec + vec3(0.18, 0.52, 0.64) * fresnel;
+              vec3 litCol = albedo * (uSunColor * (diff * 0.62 + wrapDiff * 0.44) + skyDown + sandBounce)
+                          + uSunColor * (satinSheen + microDenticleSparkle + sssTint * backSSS * 0.55)
+                          + vec3(0.20, 0.54, 0.66) * rimVelvet;
 
-              // Real-time underwater solar caustics dancing across dorsal back & fins
               float subDepth = max(0.0, -0.05 - vWorldPos.y);
               if (subDepth > 0.02) {
                 float dorsalExposure = smoothstep(-0.2, 0.75, N.y);
@@ -3109,7 +3723,6 @@
                 float cFade = exp(-subDepth * 0.32) * dorsalExposure;
                 litCol += uSunColor * vec3(0.84, 1.06, 1.15) * cVal * cFade * 0.68;
 
-                // Pelagic depth tinting
                 float clarityInv = 1.0 / clamp(uWaterClarity, 0.3, 1.85);
                 vec3 waterTint = vec3(0.03, 0.32, 0.44);
                 float tintAmt = clamp(1.0 - exp(-subDepth * 0.16 * clarityInv), 0.0, 0.46);
@@ -3133,18 +3746,17 @@
           sharkGroup.add(finMesh);
         });
 
-        // Glossy obsidian eyes recessed in orbital sockets
         const eyeMat = new THREE.MeshStandardMaterial({
-          color: 0x05070a,
-          roughness: 0.05,
-          metalness: 0.15,
-          envMapIntensity: 1.5
+          color: 0x06090e,
+          roughness: 0.08,
+          metalness: 0.10,
+          envMapIntensity: 1.3
         });
         const eyeGeo = new THREE.SphereGeometry(0.025, 16, 12);
         [-1, 1].forEach((side) => {
           const eyeMesh = new THREE.Mesh(eyeGeo, eyeMat);
           eyeMesh.scale.set(0.65, 1.0, 1.05);
-          eyeMesh.position.set(side * 0.175, 0.022, 1.38);
+          eyeMesh.position.set(side * 0.178, 0.022, 1.40);
           sharkGroup.add(eyeMesh);
         });
 
@@ -3155,7 +3767,7 @@
       scene.add(sharkMesh);
 
       const sharkState = {
-        pos: new THREE.Vector3(0, -1.95, 11.7),
+        pos: new THREE.Vector3(0, -2.15, 14.2),
         yaw: 0.0,
         pitch: 0.0,
         roll: 0.0,
@@ -3164,15 +3776,14 @@
       };
 
       function evaluateSharkPatrolPose(t) {
-        // Smooth figure-8 / elliptical patrol loop through the deep ocean basin (Z: +8.2 to +15.2, Y: -1.35 to -2.55)
-        const omega = 0.19;
+        const omega = 0.21;
         const a = t * omega;
-        const x = Math.sin(a) * 13.8 + Math.sin(a * 2.0) * 1.5;
-        const z = 11.7 + Math.cos(a) * 3.1 + Math.sin(a * 2.0) * 0.4;
+        const x = Math.sin(a) * 15.6 + Math.sin(a * 2.0) * 1.6;
+        const z = 14.2 + Math.cos(a) * 4.4 + Math.sin(a * 2.0) * 0.5;
 
-        const baseDepthY = -1.95 + Math.sin(a * 2.0 + 0.6) * 0.48;
+        const baseDepthY = -2.15 + Math.sin(a * 2.0 + 0.6) * 0.55;
         const seabedY = getBeachHeight(x, z);
-        const y = Math.max(seabedY + 1.15, Math.min(-1.35, Math.max(-2.55, baseDepthY)));
+        const y = Math.max(seabedY + 1.25, Math.min(-1.40, Math.max(-2.85, baseDepthY)));
 
         return new THREE.Vector3(x, y, z);
       }
@@ -3220,10 +3831,409 @@
       }
 
       // =========================================================================
-      // 10. COASTAL GRANITE HEADLAND, REEF, KELP, SHELLS, DRIFTWOOD & DUNE GRASS
+      // 10. WEATHERED COASTAL FISHING HUT, GRANITE HEADLAND, REEF & FLORA
       // =========================================================================
       const propsGroup = new THREE.Group();
       scene.add(propsGroup);
+
+      function buildCoastalFishingHut() {
+        const hut = new THREE.Group();
+        const hutX = 11.4;
+        const hutZ = -13.6;
+        const groundY = getBeachHeight(hutX, hutZ);
+
+        hut.position.set(hutX, groundY, hutZ);
+        hut.rotation.y = -0.26;
+
+        const weatheredWallMat = new THREE.MeshStandardMaterial({
+          map: oakTrimTex,
+          color: 0xbba992,
+          roughness: 0.86,
+          metalness: 0.02
+        });
+        const driftwoodBeamMat = new THREE.MeshStandardMaterial({
+          map: oakTrimTex,
+          color: 0x7b6650,
+          roughness: 0.88,
+          metalness: 0.02
+        });
+        const deckPlankMat = new THREE.MeshStandardMaterial({
+          map: teakDeckTex,
+          color: 0x9b7c5b,
+          roughness: 0.82,
+          metalness: 0.03
+        });
+        const trimTealMat = new THREE.MeshStandardMaterial({
+          color: 0x3b6972,
+          roughness: 0.72,
+          metalness: 0.04
+        });
+        const rustyTinMat = new THREE.MeshStandardMaterial({
+          color: 0x6b4738,
+          roughness: 0.68,
+          metalness: 0.42
+        });
+        const darkIronMat = new THREE.MeshStandardMaterial({
+          color: 0x262c34,
+          roughness: 0.52,
+          metalness: 0.76
+        });
+
+        const deckY = 0.62;
+        const cabinW = 3.50;
+        const cabinD = 2.85;
+        const porchD = 1.45;
+        const totalD = cabinD + porchD;
+
+        const postGeo = new THREE.CylinderGeometry(0.105, 0.12, 1.38, 12);
+        const pilingCoords = [
+          [-1.65, -2.02], [0.0, -2.02], [1.65, -2.02],
+          [-1.65,  0.55], [0.0,  0.55], [1.65,  0.55],
+          [-1.65,  2.02], [0.0,  2.02], [1.65,  2.02]
+        ];
+        pilingCoords.forEach(([px, pz]) => {
+          const post = new THREE.Mesh(postGeo, driftwoodBeamMat);
+          post.position.set(px, deckY - 0.66, pz);
+          post.castShadow = true;
+          post.receiveShadow = true;
+          hut.add(post);
+        });
+
+        [-1.65, 1.65].forEach((bx) => {
+          const brace = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 1.52), driftwoodBeamMat);
+          brace.position.set(bx, deckY - 0.34, 1.28);
+          brace.rotation.x = 0.38;
+          brace.castShadow = true;
+          hut.add(brace);
+        });
+
+        const numDeckPlanks = 24;
+        const plankDepth = totalD / numDeckPlanks;
+        for (let i = 0; i < numDeckPlanks; i++) {
+          const pz = -totalD * 0.5 + (i + 0.5) * plankDepth;
+          const plank = new THREE.Mesh(
+            new THREE.BoxGeometry(cabinW + 0.28, 0.065, plankDepth - 0.015),
+            deckPlankMat
+          );
+          plank.position.set(0, deckY, pz);
+          plank.castShadow = true;
+          plank.receiveShadow = true;
+          hut.add(plank);
+        }
+
+        for (let s = 0; s < 4; s++) {
+          const stepY = deckY - (s + 1) * 0.155;
+          const stepZ = totalD * 0.5 + 0.18 + s * 0.28;
+          const tread = new THREE.Mesh(new THREE.BoxGeometry(1.36, 0.055, 0.26), deckPlankMat);
+          tread.position.set(-0.45, stepY, stepZ);
+          tread.castShadow = true;
+          tread.receiveShadow = true;
+          hut.add(tread);
+        }
+        [-1.08, 0.18].forEach((sx) => {
+          const stringer = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, 1.32), driftwoodBeamMat);
+          stringer.position.set(sx, deckY - 0.34, totalD * 0.5 + 0.56);
+          stringer.rotation.x = 0.49;
+          stringer.castShadow = true;
+          hut.add(stringer);
+        });
+
+        const wallH = 2.15;
+        const cabinCenterZ = -0.68;
+
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(cabinW, wallH, 0.12), weatheredWallMat);
+        backWall.position.set(0, deckY + wallH * 0.5, cabinCenterZ - cabinD * 0.5);
+        backWall.castShadow = true;
+        backWall.receiveShadow = true;
+        hut.add(backWall);
+
+        [-1, 1].forEach((side) => {
+          const sideWall = new THREE.Mesh(new THREE.BoxGeometry(0.12, wallH, cabinD), weatheredWallMat);
+          sideWall.position.set(side * (cabinW * 0.5 - 0.04), deckY + wallH * 0.5, cabinCenterZ);
+          sideWall.castShadow = true;
+          sideWall.receiveShadow = true;
+          hut.add(sideWall);
+        });
+
+        const frontZ = cabinCenterZ + cabinD * 0.5;
+        const leftFrontWall = new THREE.Mesh(new THREE.BoxGeometry(0.82, wallH, 0.12), weatheredWallMat);
+        leftFrontWall.position.set(-1.32, deckY + wallH * 0.5, frontZ);
+        leftFrontWall.castShadow = true;
+        hut.add(leftFrontWall);
+
+        const midFrontWall = new THREE.Mesh(new THREE.BoxGeometry(0.55, wallH, 0.12), weatheredWallMat);
+        midFrontWall.position.set(0.24, deckY + wallH * 0.5, frontZ);
+        midFrontWall.castShadow = true;
+        hut.add(midFrontWall);
+
+        const rightFrontWall = new THREE.Mesh(new THREE.BoxGeometry(0.36, wallH, 0.12), weatheredWallMat);
+        rightFrontWall.position.set(1.56, deckY + wallH * 0.5, frontZ);
+        rightFrontWall.castShadow = true;
+        hut.add(rightFrontWall);
+
+        const doorHeader = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.36, 0.12), weatheredWallMat);
+        doorHeader.position.set(-0.45, deckY + wallH - 0.18, frontZ);
+        hut.add(doorHeader);
+
+        const winBelow = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.85, 0.12), weatheredWallMat);
+        winBelow.position.set(0.95, deckY + 0.425, frontZ);
+        hut.add(winBelow);
+
+        const winAbove = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.42, 0.12), weatheredWallMat);
+        winAbove.position.set(0.95, deckY + wallH - 0.21, frontZ);
+        hut.add(winAbove);
+
+        const warmInteriorMat = new THREE.MeshStandardMaterial({
+          color: 0xffd180,
+          emissive: 0xff9429,
+          emissiveIntensity: 1.35,
+          roughness: 0.25
+        });
+
+        const doorGlow = new THREE.Mesh(new THREE.PlaneGeometry(0.84, 1.76), warmInteriorMat);
+        doorGlow.position.set(-0.45, deckY + 0.88, frontZ - 0.02);
+        hut.add(doorGlow);
+
+        const doorPivot = new THREE.Group();
+        doorPivot.position.set(-0.86, deckY + 0.88, frontZ + 0.04);
+        doorPivot.rotation.y = -0.68;
+        const doorLeaf = new THREE.Mesh(new THREE.BoxGeometry(0.84, 1.74, 0.06), trimTealMat);
+        doorLeaf.position.x = 0.42;
+        doorLeaf.castShadow = true;
+        doorPivot.add(doorLeaf);
+        hut.add(doorPivot);
+
+        function addCoastalWindow(wx, wy, wz, rotY) {
+          const winGroup = new THREE.Group();
+          winGroup.position.set(wx, wy, wz);
+          winGroup.rotation.y = rotY;
+
+          const pane = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 0.82), warmInteriorMat);
+          winGroup.add(pane);
+
+          const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.07, 0.08), trimTealMat);
+          topBar.position.y = 0.43;
+          const botBar = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.08, 0.11), trimTealMat);
+          botBar.position.y = -0.43;
+          const vMullion = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.84, 0.06), trimTealMat);
+          const hMullion = new THREE.Mesh(new THREE.BoxGeometry(0.84, 0.04, 0.06), trimTealMat);
+          winGroup.add(topBar, botBar, vMullion, hMullion);
+
+          [-1, 1].forEach((s) => {
+            const shutter = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.84, 0.04), trimTealMat);
+            shutter.position.set(s * 0.56, 0, 0.02);
+            shutter.castShadow = true;
+            winGroup.add(shutter);
+          });
+
+          hut.add(winGroup);
+        }
+
+        addCoastalWindow(0.95, deckY + 1.28, frontZ + 0.03, 0);
+        addCoastalWindow(-cabinW * 0.5 - 0.03, deckY + 1.28, cabinCenterZ, -Math.PI / 2);
+
+        const roofPeakH = 1.05;
+        const roofBaseY = deckY + wallH;
+
+        const gableShape = new THREE.Shape();
+        gableShape.moveTo(-cabinW * 0.5, 0);
+        gableShape.lineTo(cabinW * 0.5, 0);
+        gableShape.lineTo(0, roofPeakH);
+        gableShape.closePath();
+        const gableGeo = new THREE.ExtrudeGeometry(gableShape, { depth: 0.10, bevelEnabled: false });
+
+        [cabinCenterZ - cabinD * 0.5, frontZ - 0.05].forEach((gz) => {
+          const gMesh = new THREE.Mesh(gableGeo, weatheredWallMat);
+          gMesh.position.set(0, roofBaseY, gz);
+          gMesh.castShadow = true;
+          hut.add(gMesh);
+        });
+
+        const halfSpan = cabinW * 0.5 + 0.34;
+        const slopeLen = Math.hypot(halfSpan, roofPeakH + 0.18);
+        const slopeAngle = Math.atan2(roofPeakH + 0.18, halfSpan);
+        const roofLenZ = totalD + 0.46;
+
+        [-1, 1].forEach((side) => {
+          const panelGeo = new THREE.PlaneGeometry(slopeLen, roofLenZ, 28, 4);
+          panelGeo.rotateX(-Math.PI / 2);
+          const pPos = panelGeo.attributes.position;
+          for (let i = 0; i < pPos.count; i++) {
+            const x = pPos.getX(i);
+            pPos.setY(i, Math.sin(x * 48.0) * 0.016);
+          }
+          panelGeo.computeVertexNormals();
+
+          const panelMesh = new THREE.Mesh(panelGeo, rustyTinMat);
+          panelMesh.position.set(
+            side * (halfSpan * 0.5),
+            roofBaseY + roofPeakH - (roofPeakH + 0.18) * 0.5 + 0.04,
+            0.02
+          );
+          panelMesh.rotation.z = -side * slopeAngle;
+          panelMesh.castShadow = true;
+          panelMesh.receiveShadow = true;
+          hut.add(panelMesh);
+        });
+
+        const ridgeCap = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.06, roofLenZ + 0.04), rustyTinMat);
+        ridgeCap.position.set(0, roofBaseY + roofPeakH + 0.05, 0.02);
+        hut.add(ridgeCap);
+
+        const chimneyPipe = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.085, 0.095, 0.95, 14),
+          new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.45, metalness: 0.72 })
+        );
+        chimneyPipe.position.set(0.88, roofBaseY + roofPeakH + 0.18, -0.95);
+        chimneyPipe.castShadow = true;
+        hut.add(chimneyPipe);
+
+        const chimneyCap = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.11, 14), darkIronMat);
+        chimneyCap.position.set(0.88, roofBaseY + roofPeakH + 0.70, -0.95);
+        hut.add(chimneyCap);
+
+        [-1.68, 1.68].forEach((px) => {
+          const porchPost = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 1.92, 10), driftwoodBeamMat);
+          porchPost.position.set(px, deckY + 0.96, 2.02);
+          porchPost.castShadow = true;
+          hut.add(porchPost);
+        });
+
+        const topRail = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.06, 0.08), driftwoodBeamMat);
+        topRail.position.set(0.95, deckY + 0.88, 2.02);
+        hut.add(topRail);
+        for (let b = 0; b < 6; b++) {
+          const bal = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.84, 0.035), driftwoodBeamMat);
+          bal.position.set(0.32 + b * 0.24, deckY + 0.44, 2.02);
+          hut.add(bal);
+        }
+
+        const lanternHook = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.03, 0.03), darkIronMat);
+        lanternHook.position.set(1.56, deckY + 1.68, 2.02);
+        hut.add(lanternHook);
+
+        const porchLantern = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.065, 0.055, 0.18, 12),
+          new THREE.MeshStandardMaterial({
+            color: 0xffd685,
+            emissive: 0xff9a28,
+            emissiveIntensity: 1.85,
+            roughness: 0.15
+          })
+        );
+        porchLantern.position.set(1.46, deckY + 1.54, 2.02);
+        hut.add(porchLantern);
+
+        const netMat = new THREE.MeshStandardMaterial({
+          color: 0x3b6e5c,
+          roughness: 0.90,
+          metalness: 0.0,
+          wireframe: true
+        });
+        const netGeo = new THREE.PlaneGeometry(1.55, 1.25, 18, 14);
+        const nPos = netGeo.attributes.position;
+        for (let i = 0; i < nPos.count; i++) {
+          const nx = nPos.getX(i);
+          const ny = nPos.getY(i);
+          const u = (nx + 0.775) / 1.55;
+          const v = (ny + 0.625) / 1.25;
+          const sag = Math.sin(u * Math.PI) * (1.0 - v) * 0.28;
+          const billow = Math.sin(u * Math.PI * 2.0) * 0.08 * (1.0 - v);
+          nPos.setXYZ(i, nx, ny - sag, billow);
+        }
+        netGeo.computeVertexNormals();
+        const drapedNet = new THREE.Mesh(netGeo, netMat);
+        drapedNet.position.set(0.95, deckY + 1.25, 2.07);
+        hut.add(drapedNet);
+
+        const floatColors = [0x2dd4bf, 0xf97316, 0x38bdf8, 0xe11d48, 0xfacc15];
+        [
+          { x: -1.48, y: deckY + 1.62, z: 2.02, r: 0.13 },
+          { x: -1.32, y: deckY + 1.48, z: 2.05, r: 0.10 },
+          { x: -1.52, y: deckY + 1.38, z: 1.96, r: 0.11 },
+          { x:  1.45, y: deckY + 0.18, z: 1.65, r: 0.14 },
+          { x:  1.25, y: deckY + 0.15, z: 1.78, r: 0.11 }
+        ].forEach((fl, idx) => {
+          const floatMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(fl.r, 16, 12),
+            new THREE.MeshStandardMaterial({
+              color: floatColors[idx % floatColors.length],
+              roughness: 0.16,
+              metalness: 0.08
+            })
+          );
+          floatMesh.position.set(fl.x, fl.y, fl.z);
+          floatMesh.castShadow = true;
+          hut.add(floatMesh);
+        });
+
+        const trapPositions = [
+          { x: 0.72, y: deckY + 0.22, z: 1.32, rot: 0.18 },
+          { x: 0.75, y: deckY + 0.58, z: 1.30, rot: -0.24 },
+          { x: 1.32, y: deckY + 0.22, z: 1.15, rot: 0.42 }
+        ];
+        trapPositions.forEach((tp) => {
+          const trap = new THREE.Group();
+          trap.position.set(tp.x, tp.y, tp.z);
+          trap.rotation.y = tp.rot;
+
+          const cage = new THREE.Mesh(
+            new THREE.BoxGeometry(0.68, 0.34, 0.46),
+            new THREE.MeshStandardMaterial({ color: 0x8b6b43, roughness: 0.85, wireframe: true })
+          );
+          trap.add(cage);
+
+          [-0.16, 0.16].forEach((ry) => {
+            const slat = new THREE.Mesh(new THREE.BoxGeometry(0.70, 0.03, 0.48), driftwoodBeamMat);
+            slat.position.y = ry;
+            slat.castShadow = true;
+            trap.add(slat);
+          });
+          hut.add(trap);
+        });
+
+        const barrel = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.24, 0.22, 0.58, 16),
+          driftwoodBeamMat
+        );
+        barrel.position.set(-1.38, deckY + 0.31, 1.38);
+        barrel.castShadow = true;
+        hut.add(barrel);
+
+        [-0.18, 0.18].forEach((hy) => {
+          const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.238, 0.012, 6, 18), darkIronMat);
+          hoop.rotation.x = Math.PI / 2;
+          hoop.position.set(-1.38, deckY + 0.31 + hy, 1.38);
+          hut.add(hoop);
+        });
+
+        [-1, 1].forEach((oIdx) => {
+          const oar = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1.85, 0.025), deckPlankMat);
+          oar.position.set(-1.84, deckY + 0.90, -0.35 + oIdx * 0.16);
+          oar.rotation.z = -0.18;
+          oar.castShadow = true;
+          hut.add(oar);
+        });
+
+        for (let p = 0; p < 8; p++) {
+          const localZ = totalD * 0.5 + 1.45 + p * 0.46;
+          const localX = -0.45 + Math.sin(p * 0.45) * 0.18;
+          const worldPt = new THREE.Vector3(localX, 0, localZ).applyAxisAngle(new THREE.Vector3(0, 1, 0), -0.26);
+          const wx = hutX + worldPt.x;
+          const wz = hutZ + worldPt.z;
+          const wy = getBeachHeight(wx, wz);
+
+          const board = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.04, 0.22), deckPlankMat);
+          board.position.set(localX, wy - groundY + 0.015, localZ);
+          board.rotation.y = (hash21(p, 4.2) - 0.5) * 0.14;
+          board.receiveShadow = true;
+          board.castShadow = true;
+          hut.add(board);
+        }
+
+        return hut;
+      }
+      propsGroup.add(buildCoastalFishingHut());
 
       function createCoastalGraniteAndReef() {
         const rockGroup = new THREE.Group();
@@ -3236,19 +4246,18 @@
         });
 
         const boulders = [
-          { x: -18.2, z: -3.2, sx: 3.1, sy: 1.9, sz: 2.7, rot: 0.4 },
-          { x: -15.4, z: -1.8, sx: 2.4, sy: 1.4, sz: 2.1, rot: 1.3 },
-          { x: -19.2, z:  0.6, sx: 2.6, sy: 1.6, sz: 2.4, rot: 2.2 },
-          { x: -16.2, z:  2.2, sx: 1.9, sy: 1.15, sz: 1.7, rot: 0.9 },
-          { x: -13.1, z:  0.8, sx: 1.5, sy: 0.88, sz: 1.4, rot: 3.1 },
-          { x: -19.6, z: -6.2, sx: 3.2, sy: 2.1, sz: 2.9, rot: 1.8 },
-          { x: -15.2, z: -4.8, sx: 2.2, sy: 1.35, sz: 1.9, rot: 4.2 },
-          { x: -11.8, z:  2.4, sx: 1.2, sy: 0.72, sz: 1.1, rot: 2.6 },
-          // Submerged reef outcrops along the shelf drop-off
-          { x: -13.5, z:  7.8, sx: 2.1, sy: 1.15, sz: 1.8, rot: 0.7 },
-          { x: -10.8, z:  9.2, sx: 1.6, sy: 0.85, sz: 1.5, rot: 2.1 },
-          { x:  13.2, z:  8.4, sx: 2.2, sy: 1.20, sz: 1.9, rot: 1.4 },
-          { x:  15.6, z: 10.2, sx: 1.7, sy: 0.90, sz: 1.5, rot: 3.5 }
+          { x: -18.2, z: -6.7, sx: 3.1, sy: 1.9, sz: 2.7, rot: 0.4 },
+          { x: -15.4, z: -5.3, sx: 2.4, sy: 1.4, sz: 2.1, rot: 1.3 },
+          { x: -19.2, z: -2.9, sx: 2.6, sy: 1.6, sz: 2.4, rot: 2.2 },
+          { x: -16.2, z: -1.3, sx: 1.9, sy: 1.15, sz: 1.7, rot: 0.9 },
+          { x: -13.1, z: -2.7, sx: 1.5, sy: 0.88, sz: 1.4, rot: 3.1 },
+          { x: -19.6, z: -9.7, sx: 3.2, sy: 2.1, sz: 2.9, rot: 1.8 },
+          { x: -15.2, z: -8.3, sx: 2.2, sy: 1.35, sz: 1.9, rot: 4.2 },
+          { x: -11.8, z: -1.1, sx: 1.2, sy: 0.72, sz: 1.1, rot: 2.6 },
+          { x: -13.5, z:  4.5, sx: 2.1, sy: 1.15, sz: 1.8, rot: 0.7 },
+          { x: -10.8, z:  6.0, sx: 1.6, sy: 0.85, sz: 1.5, rot: 2.1 },
+          { x:  13.2, z:  5.2, sx: 2.2, sy: 1.20, sz: 1.9, rot: 1.4 },
+          { x:  15.6, z:  7.0, sx: 1.7, sy: 0.90, sz: 1.5, rot: 3.5 }
         ];
 
         boulders.forEach((b, idx) => {
@@ -3273,14 +4282,11 @@
 
             const worldY = centerY + sy;
             const c = new THREE.Color(0x6b665f).lerp(new THREE.Color(0x989187), n1);
-            // Golden coastal lichen on upper dry tops
             if (vy > 0.35 && worldY > 0.5) {
               c.lerp(new THREE.Color(0x888450), smoothstepJS(0.35, 0.85, vy) * 0.42);
             }
-            // Dark wet tidal splash zone below Y = +0.38m
             const wetSplash = 1.0 - smoothstepJS(0.15, 0.40, worldY);
             c.multiplyScalar(THREE.MathUtils.lerp(1.0, 0.52, wetSplash));
-            // Submerged reef moss & coralline algae below sea level
             if (worldY < -0.1) {
               c.lerp(new THREE.Color(0x3a4e46), smoothstepJS(-0.1, -1.2, worldY) * 0.55);
             }
@@ -3338,10 +4344,10 @@
         });
 
         const kelpBeds = [
-          { cx: -13.6, cz:  8.2, count: 12 },
-          { cx: -10.9, cz:  9.5, count: 10 },
-          { cx:  13.4, cz:  8.8, count: 12 },
-          { cx:  15.4, cz: 10.4, count: 10 }
+          { cx: -13.6, cz:  5.0, count: 12 },
+          { cx: -10.9, cz:  6.3, count: 10 },
+          { cx:  13.4, cz:  5.6, count: 12 },
+          { cx:  15.4, cz:  7.2, count: 10 }
         ];
 
         kelpBeds.forEach((bed, bIdx) => {
@@ -3403,20 +4409,20 @@
       });
 
       [
-        { x: -7.4, z: -2.8, s: 1.15, rot: 0.4 },
-        { x: -4.2, z: -3.2, s: 0.95, rot: 2.1 },
-        { x: -1.4, z: -2.4, s: 1.25, rot: 1.1 },
-        { x:  1.8, z: -2.9, s: 1.02, rot: 4.5 },
-        { x:  4.6, z: -2.2, s: 1.20, rot: 3.2 },
-        { x:  8.2, z: -3.0, s: 0.95, rot: 5.1 },
-        { x: 11.8, z: -2.4, s: 1.12, rot: 0.9 },
-        { x: 15.4, z: -3.1, s: 0.90, rot: 2.7 },
-        { x: -4.8, z:  1.1, s: 1.22, rot: 1.8 },
-        { x: -1.2, z:  1.8, s: 1.05, rot: 4.1 },
-        { x:  3.4, z:  1.2, s: 1.18, rot: 0.3 },
-        { x:  7.2, z:  2.4, s: 0.98, rot: 2.6 },
-        { x: 10.8, z:  1.9, s: 1.14, rot: 5.4 },
-        { x:  0.8, z:  3.8, s: 1.08, rot: 1.4 }
+        { x: -7.4, z: -6.3, s: 1.15, rot: 0.4 },
+        { x: -4.2, z: -6.7, s: 0.95, rot: 2.1 },
+        { x: -1.4, z: -5.9, s: 1.25, rot: 1.1 },
+        { x:  1.8, z: -6.4, s: 1.02, rot: 4.5 },
+        { x:  4.6, z: -5.7, s: 1.20, rot: 3.2 },
+        { x:  8.2, z: -6.5, s: 0.95, rot: 5.1 },
+        { x: 11.8, z: -5.9, s: 1.12, rot: 0.9 },
+        { x: 15.4, z: -6.6, s: 0.90, rot: 2.7 },
+        { x: -4.8, z: -2.4, s: 1.22, rot: 1.8 },
+        { x: -1.2, z: -1.7, s: 1.05, rot: 4.1 },
+        { x:  3.4, z: -2.3, s: 1.18, rot: 0.3 },
+        { x:  7.2, z: -1.1, s: 0.98, rot: 2.6 },
+        { x: 10.8, z: -1.6, s: 1.14, rot: 5.4 },
+        { x:  0.8, z:  0.3, s: 1.08, rot: 1.4 }
       ].forEach((loc) => {
         const mesh = new THREE.Mesh(shellGeo, shellMat);
         const y = getBeachHeight(loc.x, loc.z);
@@ -3460,7 +4466,7 @@
       const dummy = new THREE.Object3D();
       for (let i = 0; i < PEBBLE_COUNT; i++) {
         const px = (hash21(i * 3.1, 1.7) - 0.5) * 40.0;
-        const pz = -4.5 + hash21(i * 7.3, 4.9) * 16.0;
+        const pz = -8.0 + hash21(i * 7.3, 4.9) * 18.0;
         const py = getBeachHeight(px, pz);
 
         dummy.position.set(px, py - 0.01, pz);
@@ -3491,10 +4497,10 @@
         });
 
         const mainCurve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(5.8, getBeachHeight(5.8, -5.2) + 0.06, -5.2),
-          new THREE.Vector3(7.6, getBeachHeight(7.6, -4.8) + 0.14, -4.8),
-          new THREE.Vector3(9.4, getBeachHeight(9.4, -5.1) + 0.13, -5.1),
-          new THREE.Vector3(11.2, getBeachHeight(11.2, -4.6) + 0.06, -4.6)
+          new THREE.Vector3(-4.2, getBeachHeight(-4.2, -8.8) + 0.06, -8.8),
+          new THREE.Vector3(-2.4, getBeachHeight(-2.4, -8.4) + 0.14, -8.4),
+          new THREE.Vector3(-0.6, getBeachHeight(-0.6, -8.7) + 0.13, -8.7),
+          new THREE.Vector3( 1.2, getBeachHeight( 1.2, -8.2) + 0.06, -8.2)
         ]);
         const trunkGeo = new THREE.TubeGeometry(mainCurve, 48, 0.19, 14, false);
         const tPos = trunkGeo.attributes.position;
@@ -3502,7 +4508,7 @@
           const vx = tPos.getX(i);
           const vy = tPos.getY(i);
           const vz = tPos.getZ(i);
-          const t = THREE.MathUtils.clamp((vx - 5.8) / 5.4, 0.0, 1.0);
+          const t = THREE.MathUtils.clamp((vx + 4.2) / 5.4, 0.0, 1.0);
           const center = mainCurve.getPointAt(t);
           const taper = 1.18 - 0.58 * t + 0.12 * Math.sin(t * 14.0);
           tPos.setXYZ(
@@ -3519,9 +4525,9 @@
         woodGroup.add(trunkMesh);
 
         const branchCurve = new THREE.CatmullRomCurve3([
-          new THREE.Vector3(7.9, getBeachHeight(7.9, -4.85) + 0.15, -4.85),
-          new THREE.Vector3(8.7, getBeachHeight(8.7, -5.55) + 0.24, -5.55),
-          new THREE.Vector3(9.5, getBeachHeight(9.5, -6.05) + 0.14, -6.05)
+          new THREE.Vector3(-2.1, getBeachHeight(-2.1, -8.45) + 0.15, -8.45),
+          new THREE.Vector3(-1.3, getBeachHeight(-1.3, -9.15) + 0.24, -9.15),
+          new THREE.Vector3(-0.5, getBeachHeight(-0.5, -9.65) + 0.14, -9.65)
         ]);
         const branchMesh = new THREE.Mesh(new THREE.TubeGeometry(branchCurve, 24, 0.09, 10, false), woodMat);
         branchMesh.castShadow = true;
@@ -3576,8 +4582,8 @@
         mesh.receiveShadow = true;
         return mesh;
       }
-      propsGroup.add(createStarfishProp(-2.2, 1.85));
-      propsGroup.add(createStarfishProp(6.2, 2.35));
+      propsGroup.add(createStarfishProp(-2.2, -1.65));
+      propsGroup.add(createStarfishProp(6.2, -1.15));
 
       // Coastal Dune Grass Tufts on Upper Dry Berm
       const grassTufts = [];
@@ -3612,18 +4618,18 @@
         });
 
         const tussocks = [
-          { cx: -18.2, cz: -14.8, count: 16 },
-          { cx: -13.6, cz: -15.4, count: 18 },
-          { cx:  -8.4, cz: -14.2, count: 16 },
-          { cx:  -3.2, cz: -15.8, count: 18 },
-          { cx:   2.4, cz: -14.4, count: 18 },
-          { cx:   7.8, cz: -15.2, count: 16 },
-          { cx:  13.2, cz: -14.0, count: 16 },
-          { cx:  18.4, cz: -15.4, count: 18 },
-          { cx: -10.5, cz: -10.8, count: 14 },
-          { cx:  -1.8, cz: -11.2, count: 14 },
-          { cx:   6.4, cz: -10.4, count: 14 },
-          { cx:  15.6, cz: -10.6, count: 14 }
+          { cx: -18.2, cz: -19.2, count: 16 },
+          { cx: -13.6, cz: -19.8, count: 18 },
+          { cx:  -8.4, cz: -18.6, count: 16 },
+          { cx:  -3.2, cz: -20.2, count: 18 },
+          { cx:   2.4, cz: -18.8, count: 18 },
+          { cx:   6.8, cz: -19.6, count: 16 },
+          { cx:  16.8, cz: -18.5, count: 16 },
+          { cx:  18.8, cz: -14.8, count: 18 },
+          { cx: -10.5, cz: -14.5, count: 14 },
+          { cx:  -1.8, cz: -14.8, count: 14 },
+          { cx:   5.2, cz: -13.8, count: 14 },
+          { cx:  17.4, cz: -11.2, count: 14 }
         ];
 
         tussocks.forEach((tussock, tIdx) => {
@@ -3815,7 +4821,6 @@
           updateFleetPhysics(simTime, dt);
           updateSharkMotion(simTime, dt);
 
-          // Gentle coastal breeze sway on dune grass & underwater kelp
           const breeze = sharedUniforms.uBreeze.value;
           for (let i = 0; i < grassTufts.length; i++) {
             const tuft = grassTufts[i];
